@@ -36,8 +36,11 @@ step 3.
 
 On the **Build** tab:
 
-- **Invocations → Skill Invocation Name** is `energy display`. You can change it, for
-  example to `my energy`. Then you say "Alexa, open my energy".
+- **Invocations → Skill Invocation Name**: the import leaves the console's
+  placeholder **`change me`** here. Replace it with `energy display`, or another
+  two-word name such as `home energy`, and **Save**. Until you do, "Alexa, open
+  energy display" is answered by Alexa itself ("Here's Energy Display" and a blank or
+  "template is not available" screen). The skill never receives the request.
 - **Interfaces**: *Alexa Presentation Language*, *Data Store* and *Data Store Packages*
   are on.
 - Press **Build skill** and wait for "Build successful".
@@ -122,6 +125,23 @@ Start from a blank Alexa-hosted (Python) skill, then:
    then save and associate the widget with this skill.
 6. **Build skill**, then carry on with step 3 above.
 
+## Checking from the command line
+
+With the [ASK CLI](https://developer.amazon.com/en-US/docs/alexa/smapi/quick-start-alexa-skills-kit-command-line-interface.html)
+(`npm install -g ask-cli && ask configure --no-browser`, no AWS account needed), you
+can simulate exactly what Alexa does:
+
+```sh
+ask smapi list-skills-for-vendor                       # find your skill ID
+ask smapi get-interaction-model -s <skill-id> -g development -l en-GB | grep invocationName
+ask smapi simulate-skill -s <skill-id> -g development -l en-GB --input-content "open energy display"
+ask smapi get-skill-simulation -s <skill-id> -g development -i <simulation-id>
+```
+
+A working launch shows one `LaunchRequest` invocation whose response has an
+`Alexa.Presentation.APL.RenderDocument` directive with your tiles. "This utterance did
+not resolve to any intent in your skill" means the invocation name is wrong.
+
 ## Using the ASK CLI instead
 
 If you prefer the command line and have an AWS account, `ask-resources.json` deploys
@@ -148,6 +168,7 @@ Bump `manifest.version` in the widget's `manifest.json` when you change the widg
 
 | Symptom | Fix |
 | --- | --- |
+| "Here's Energy Display" with an empty screen, empty JSON input/output in the Test tab | The invocation name is still `change me` (Build → Invocations). Set it, Save, **Build skill**, then wait for the full build. |
 | "I can't find that skill" | Skill locale differs from the Echo's language, or Test is not set to Development. |
 | "Energy Display is not set up yet" | `lambda/config.json` is missing or still has the placeholder URL; Deploy after saving. |
 | "I couldn't reach Home Assistant" | The webhook URL must work from the internet. Try `curl -X POST -d '{}' <url>`: it should return JSON with a `snapshot`. |
