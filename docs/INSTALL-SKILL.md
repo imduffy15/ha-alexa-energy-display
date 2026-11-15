@@ -134,7 +134,7 @@ can simulate exactly what Alexa does:
 ```sh
 ask smapi list-skills-for-vendor                       # find your skill ID
 ask smapi get-interaction-model -s <skill-id> -g development -l en-GB | grep invocationName
-ask smapi simulate-skill -s <skill-id> -g development -l en-GB --input-content "open energy display"
+ask smapi simulate-skill -s <skill-id> -g development --device-locale en-GB --input-content "open energy display"
 ask smapi get-skill-simulation -s <skill-id> -g development -i <simulation-id>
 ```
 
