@@ -201,3 +201,21 @@ async def test_accept_grant_without_credentials(hass, hass_client, energy):
     out = await post(client, directive("Alexa.Authorization", "AcceptGrant", payload={
         "grant": {"type": "OAuth2.AuthorizationCode", "code": "X"}, "grantee": {"type": "BearerToken", "token": "t"}}))
     assert out["event"]["header"]["name"] == "AcceptGrant.Response"
+
+
+async def test_devices_survive_unavailable_sensors(hass, hass_client, energy):
+    """After a restart, sensors can be unavailable for a while; devices must not vanish."""
+    entry = await setup(hass)
+    for entity_id in ("sensor.solar_w", "sensor.grid_w", "sensor.batt_w", "sensor.batt_soc"):
+        hass.states.async_set(entity_id, "unavailable")
+    await entry.runtime_data.async_refresh()
+    client = await hass_client()
+    out = await post(client, directive("Alexa.Discovery", "Discover"))
+    names = {e["friendlyName"]: e for e in out["event"]["payload"]["endpoints"]}
+    assert {"Solar", "Grid", "Battery", "Home Energy"} <= set(names)
+    instances = {c.get("instance") for c in names["Battery"]["capabilities"]}
+    assert {"Battery.Level", "Battery.Power", "Battery.State"} <= instances
+    state = await post(client, directive("Alexa", "ReportState", f"{entry.entry_id}-battery"))
+    props = state["context"]["properties"]
+    assert props == [p for p in props if p["namespace"] == "Alexa.EndpointHealth"]
+    assert props[0]["value"] == {"value": "UNREACHABLE"}

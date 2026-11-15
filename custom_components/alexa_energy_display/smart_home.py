@@ -126,6 +126,25 @@ def build_devices(hass: HomeAssistant, coordinator: EnergyDisplayCoordinator) ->
     prefix = (entry.options.get(CONF_VOICE_PREFIX) or "").strip()
     base = entry.entry_id
     m = coordinator.metrics
+    src = coordinator.energy_sources
+    # Devices follow what is configured, not what happens to be readable right now, so
+    # a sensor that is briefly unavailable (after a restart, say) doesn't make Alexa
+    # forget the device. Missing values are reported as connectivity UNREACHABLE.
+    configured = {
+        "solar_power_kw": src.solar_power,
+        "solar_today_kwh": src.solar_energy,
+        "grid_power_kw": src.grid_power,
+        "import_today_kwh": src.grid_import,
+        "export_today_kwh": src.grid_export,
+        "battery_soc": src.battery_soc,
+        "battery_power_kw": src.battery_power,
+        "home_power_kw": src.home_power or src.grid_power,
+        "home_today_kwh": src.home_energy or src.solar_energy or src.grid_import,
+    }
+
+    def has(metric: str) -> bool:
+        return metric in m or bool(configured.get(metric))
+
     devices: list[Device] = []
 
     def named(name: str) -> str:
@@ -139,22 +158,22 @@ def build_devices(hass: HomeAssistant, coordinator: EnergyDisplayCoordinator) ->
 
     solar = [r for r in (
         watts("Solar.Power", ("Power", "Solar power", "Generation"), "solar_power_kw")
-        if "solar_power_kw" in m else None,
+        if has("solar_power_kw") else None,
         kwh("Solar.Today", ("Energy today", "Generation today", "Solar today"), "solar_today_kwh")
-        if "solar_today_kwh" in m else None,
+        if has("solar_today_kwh") else None,
     ) if r]
     if solar:
         devices.append(Device(f"{base}-solar", named("Solar"), "Solar generation from Home Assistant", ranges=solar))
 
     grid = [r for r in (
-        watts("Grid.Power", ("Power", "Grid power"), "grid_power_kw", signed=True) if "grid_power_kw" in m else None,
+        watts("Grid.Power", ("Power", "Grid power"), "grid_power_kw", signed=True) if has("grid_power_kw") else None,
         kwh("Grid.ImportToday", ("Import today", "Imported today"), "import_today_kwh")
-        if "import_today_kwh" in m else None,
+        if has("import_today_kwh") else None,
         kwh("Grid.ExportToday", ("Export today", "Exported today"), "export_today_kwh")
-        if "export_today_kwh" in m else None,
+        if has("export_today_kwh") else None,
     ) if r]
     grid_modes = []
-    if "grid_power_kw" in m:
+    if has("grid_power_kw"):
         grid_modes.append(Mode(
             "Grid.Direction", ("Direction", "Grid direction"),
             {"Grid.Direction.Importing": ("Importing",), "Grid.Direction.Exporting": ("Exporting",),
@@ -167,12 +186,12 @@ def build_devices(hass: HomeAssistant, coordinator: EnergyDisplayCoordinator) ->
 
     battery = [r for r in (
         Range("Battery.Level", ("Level", "Charge", "Battery level"), "battery_soc", 0, 100, 1,
-              unit="Alexa.Unit.Percent", proactive=True) if "battery_soc" in m else None,
+              unit="Alexa.Unit.Percent", proactive=True) if has("battery_soc") else None,
         watts("Battery.Power", ("Power", "Battery power"), "battery_power_kw", signed=True)
-        if "battery_power_kw" in m else None,
+        if has("battery_power_kw") else None,
     ) if r]
     battery_modes = []
-    if "battery_power_kw" in m:
+    if has("battery_power_kw"):
         battery_modes.append(Mode(
             "Battery.State", ("State", "Battery state"),
             {"Battery.State.Charging": ("Charging",), "Battery.State.Discharging": ("Discharging",),
@@ -184,9 +203,9 @@ def build_devices(hass: HomeAssistant, coordinator: EnergyDisplayCoordinator) ->
                               ranges=battery, modes=battery_modes))
 
     home = [r for r in (
-        watts("Home.Power", ("Power", "Consumption", "Usage"), "home_power_kw") if "home_power_kw" in m else None,
+        watts("Home.Power", ("Power", "Consumption", "Usage"), "home_power_kw") if has("home_power_kw") else None,
         kwh("Home.Today", ("Energy today", "Usage today", "Consumption today"), "home_today_kwh")
-        if "home_today_kwh" in m else None,
+        if has("home_today_kwh") else None,
     ) if r]
     if home:
         devices.append(Device(f"{base}-home", named("Home Energy"), "Home consumption from Home Assistant",
