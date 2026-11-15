@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 import json
-import threading
-from http.server import BaseHTTPRequestHandler, HTTPServer
 
 import ha_client
 import lambda_function
@@ -149,42 +147,54 @@ def test_layout(count, cols, rows):
     assert out["tileHeight"] == f"{100 / rows:.4f}%"
 
 
-class _Handler(BaseHTTPRequestHandler):
-    received: list = []
+class _Resp:
+    def __init__(self, body: bytes):
+        self._body = body
 
-    def do_POST(self):  # noqa: N802
-        body = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
-        _Handler.received.append(body)
-        out = json.dumps({"snapshot": SNAPSHOT}).encode()
-        self.send_response(200)
-        self.send_header("Content-Type", "application/json")
-        self.send_header("Content-Length", str(len(out)))
-        self.end_headers()
-        self.wfile.write(out)
+    def read(self):
+        return self._body
 
-    def log_message(self, *args):
-        pass
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
 
 
-@pytest.mark.enable_socket
-@pytest.mark.allow_hosts(["127.0.0.1"])
-def test_ha_client_http_roundtrip(monkeypatch, tmp_path):
-    server = HTTPServer(("127.0.0.1", 0), _Handler)
-    threading.Thread(target=server.serve_forever, daemon=True).start()
-    try:
-        # https is required in config; call urllib against http via env override of the check.
-        (tmp_path / "config.json").write_text(json.dumps({"webhook_url": "https://placeholder"}))
-        monkeypatch.setattr(ha_client, "_HERE", str(tmp_path))
-        config = ha_client.load_config()
-        assert config["webhook_url"] == "https://placeholder"
-        monkeypatch.setattr(
-            ha_client, "load_config", lambda: {"webhook_url": f"http://127.0.0.1:{server.server_port}/api/webhook/x"}
-        )
-        reply = ha_client.call("launch", {"user_id": USER}, {"k": 1})
-        assert reply["snapshot"]["title"] == "Energy"
-        assert _Handler.received[-1] == {"type": "launch", "user_id": USER, "detail": {"k": 1}}
-    finally:
-        server.shutdown()
+def test_ha_client_request(monkeypatch, tmp_path):
+    (tmp_path / "config.json").write_text(json.dumps({"webhook_url": "https://ha.example.com/api/webhook/x"}))
+    monkeypatch.delenv("WEBHOOK_URL", raising=False)
+    monkeypatch.setattr(ha_client, "_HERE", str(tmp_path))
+    sent = {}
+
+    def fake_urlopen(request, timeout):
+        sent.update(url=request.full_url, method=request.get_method(), timeout=timeout,
+                    body=json.loads(request.data), ctype=request.get_header("Content-type"))
+        return _Resp(json.dumps({"snapshot": SNAPSHOT}).encode())
+
+    monkeypatch.setattr(ha_client.urllib.request, "urlopen", fake_urlopen)
+    reply = ha_client.call("launch", {"user_id": USER}, {"k": 1})
+    assert reply["snapshot"]["title"] == "Energy"
+    assert sent == {
+        "url": "https://ha.example.com/api/webhook/x",
+        "method": "POST",
+        "timeout": 6.0,
+        "body": {"type": "launch", "user_id": USER, "detail": {"k": 1}},
+        "ctype": "application/json",
+    }
+
+    def refuse(request, timeout):
+        raise ha_client.urllib.error.URLError("refused")
+
+    monkeypatch.setattr(ha_client.urllib.request, "urlopen", refuse)
+    with pytest.raises(ha_client.HomeAssistantError):
+        ha_client.call("launch", {})
+
+
+def test_env_overrides_config(monkeypatch, tmp_path):
+    monkeypatch.setattr(ha_client, "_HERE", str(tmp_path))
+    monkeypatch.setenv("WEBHOOK_URL", "https://env.example.com/api/webhook/y")
+    assert ha_client.load_config()["webhook_url"] == "https://env.example.com/api/webhook/y"
 
 
 def test_config_rejects_placeholder(monkeypatch, tmp_path):
