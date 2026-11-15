@@ -26,6 +26,7 @@ script prints the link.
 from __future__ import annotations
 
 import argparse
+import contextlib
 import json
 import os
 import shutil
@@ -515,6 +516,10 @@ def main() -> int:
             log(f'creating Alexa-hosted skill "{args.name}" ({", ".join(locales)}, {args.region})')
             skill_id = create_hosted_skill(ask, vendor, args.name, locales, REGIONS[args.region])
 
+        testers_before = []
+        with contextlib.suppress(SetupError):  # no beta test
+            testers_before = [t["emailId"] for t in ask.smapi("get-list-of-testers", "-s", skill_id, retries=2)
+                              .get("testers", [])]
         log("importing skill-package/ (manifest, interaction models, widget)")
         import_package(ask, skill_id, build_package(locales, invocation, args.name, live_endpoint(ask, skill_id)))
 
@@ -555,6 +560,16 @@ def main() -> int:
                 state = wait(lambda: ha.widget_status(args.ha_title), "the widget status sensor", 30, 3)
                 log(f"Home Assistant widget status: {state['state']} "
                     f"({state['attributes'].get('paired_accounts')} paired account(s))")
+        if testers_before and not args.invite:
+            try:
+                remaining = {t["emailId"] for t in ask.smapi("get-list-of-testers", "-s", skill_id, retries=2)
+                             .get("testers", [])}
+            except SetupError:
+                remaining = set()
+            lost = [e for e in testers_before if e not in remaining]
+            if lost:
+                log(f"warning: the import removed beta testers {', '.join(lost)}; re-run with "
+                    + " ".join(f"--invite {e}" for e in lost))
         if args.invite:
             invite_testers(ask, skill_id, args.invite)
     except SetupError as err:

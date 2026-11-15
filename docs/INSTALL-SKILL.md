@@ -59,6 +59,9 @@ their email → Save. They get an email from Amazon. Its link enables the skill 
 account, and they say "Alexa, open <invocation>". The first time they do, Home
 Assistant pairs their Alexa account and the widget push reaches their Echo too.
 
+Re-importing the skill package (re-running the script without `--invite`) can clear the
+tester list. The script warns when it does; re-run with the same `--invite` options.
+
 Testers see **this skill's** Home Assistant. For another home, create a separate skill
 pointing at that home's Home Assistant (`--name`, `--invocation`, `--ha-url`,
 `--ha-title`) and invite them to that one.
