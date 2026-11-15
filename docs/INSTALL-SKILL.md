@@ -44,6 +44,25 @@ the link for the last manual step, installing the widget on a device ([step 6](#
 Amazon's API returns 502/504 errors now and then. The script retries them, and
 rerunning it after a failure is safe.
 
+## Sharing with someone else's Echo (beta test)
+
+Development skills only run on your own Amazon account. To put the display on a
+relative's Echo (their own Amazon account), invite them to a **beta test**: up to 500
+testers, 90 days at a time, no certification.
+
+```sh
+python3 tools/setup_skill.py --skill-id <skill-id> ... --invite their-amazon-email@example.com
+```
+
+Or: developer console → your skill → **Distribution → Availability → Beta Test** → add
+their email → Save. They get an email from Amazon. Its link enables the skill on their
+account, and they say "Alexa, open <invocation>". The first time they do, Home
+Assistant pairs their Alexa account and the widget push reaches their Echo too.
+
+Testers see **this skill's** Home Assistant. For another home, create a separate skill
+pointing at that home's Home Assistant (`--name`, `--invocation`, `--ha-url`,
+`--ha-title`) and invite them to that one.
+
 ## Manual setup
 
 ## 1. Create the skill

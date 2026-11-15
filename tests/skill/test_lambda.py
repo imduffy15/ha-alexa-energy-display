@@ -250,3 +250,24 @@ def test_config_rejects_placeholder(monkeypatch, tmp_path):
     monkeypatch.setattr(ha_client, "_HERE", str(tmp_path))
     with pytest.raises(ha_client.NotConfigured):
         ha_client.load_config()
+
+
+def test_smart_home_directive_is_forwarded(monkeypatch, tmp_path):
+    import smart_home
+
+    (tmp_path / "config.json").write_text(json.dumps({"webhook_url": "https://ha.example.com/api/webhook/x"}))
+    monkeypatch.delenv("WEBHOOK_URL", raising=False)
+    monkeypatch.delenv("BASE_URL", raising=False)
+    monkeypatch.setattr(ha_client, "_HERE", str(tmp_path))
+    sent = {}
+
+    def fake_urlopen(request, timeout):
+        sent.update(url=request.full_url, auth=request.get_header("Authorization"))
+        return _Resp(json.dumps({"event": {"header": {"name": "Discover.Response"}}}).encode())
+
+    monkeypatch.setattr(smart_home.urllib.request, "urlopen", fake_urlopen)
+    event = {"directive": {"header": {"namespace": "Alexa.Discovery", "name": "Discover", "payloadVersion": "3",
+                                      "messageId": "m"}, "payload": {"scope": {"type": "BearerToken", "token": "TOK"}}}}
+    out = lambda_function.lambda_handler(event, None)
+    assert out == {"event": {"header": {"name": "Discover.Response"}}}
+    assert sent == {"url": "https://ha.example.com/api/alexa_energy_display/smart_home", "auth": "Bearer TOK"}

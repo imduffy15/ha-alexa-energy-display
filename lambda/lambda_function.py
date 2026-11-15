@@ -15,6 +15,7 @@ from typing import Any
 
 import ask_sdk_core.utils as ask_utils
 import ha_client
+import smart_home
 import views
 from ask_sdk_core.dispatch_components import (
     AbstractExceptionHandler,
@@ -267,4 +268,12 @@ for handler in (
 ):
     sb.add_request_handler(handler)
 sb.add_exception_handler(ErrorHandler())
-lambda_handler = sb.lambda_handler()
+_ask_handler = sb.lambda_handler()
+
+
+def lambda_handler(event, context):
+    """Custom-skill requests go to the ASK SDK; smart home directives (when this skill
+    is a multi-capability skill with the smart home API) go to Home Assistant."""
+    if isinstance(event, dict) and "directive" in event:
+        return smart_home.forward(event)
+    return _ask_handler(event, context)

@@ -117,7 +117,7 @@ def create_hosted_skill(ask: Ask, vendor: str, name: str, locales: list[str], re
     }
     body = {
         "vendorId": vendor,
-        "manifest": {"manifest": manifest},
+        "manifest": manifest,
         "hosting": {"alexaHosted": {"runtime": "PYTHON_3_8", "region": region}},
     }
     with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as f:
@@ -237,6 +237,18 @@ def _import_once(ask: Ask, skill_id: str, package: bytes) -> None:
         raise SetupError(f"package import {status.get('status')}: {json.dumps(details or status)[:1500]}")
 
 
+def skill_messaging_credentials(ask: Ask, skill_id: str) -> dict[str, str]:
+    """Amazon creates them once the manifest declares the data store; poll until then."""
+
+    def fetch():
+        try:
+            return ask.smapi("get-skill-credentials", "-s", skill_id, retries=1)["skillMessagingCredentials"]
+        except (SetupError, KeyError):
+            return None
+
+    return wait(fetch, "the skill messaging credentials", timeout=300, every=10)
+
+
 def git_credentials(ask: Ask, skill_id: str, repo: str) -> str:
     creds = ask.smapi(
         "generate-credentials-for-alexa-hosted-skill",
@@ -297,13 +309,30 @@ def push_code(ask: Ask, skill_id: str, webhook_url: str, timeout_seconds: int) -
 
 
 def wait_for_models(ask: Ask, skill_id: str, locales: list[str]) -> None:
+    """Wait for every locale's build. A new skill sometimes reports a failure left over
+    from its empty placeholder model; re-saving the current model rebuilds it once."""
+    rebuilt: set[str] = set()
+
     def built():
         status = ask.smapi("get-skill-status", "-s", skill_id, "--resource", "interactionModel")
         models = status.get("interactionModel", {})
         states = {loc: models.get(loc, {}).get("lastUpdateRequest", {}) for loc in locales}
         for loc, state in states.items():
-            if state.get("status") == "FAILED":
+            if state.get("status") != "FAILED":
+                continue
+            if loc in rebuilt:
                 raise SetupError(f"interaction model build failed for {loc}: {json.dumps(state.get('errors'))[:800]}")
+            rebuilt.add(loc)
+            log(f"{loc} build reported a failure; re-saving the model to rebuild it")
+            model = ask.smapi("get-interaction-model", "-s", skill_id, "-g", "development", "-l", loc)
+            with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as f:
+                json.dump(model, f)
+            try:
+                ask.smapi("set-interaction-model", "-s", skill_id, "-g", "development", "-l", loc,
+                          "--interaction-model", f"file:{f.name}")
+            finally:
+                os.unlink(f.name)
+            return False
         return all(s.get("status") == "SUCCEEDED" for s in states.values())
 
     wait(built, "the interaction model builds", timeout=900, every=10)
@@ -339,6 +368,27 @@ def simulate(ask: Ask, skill_id: str, locale: str, invocation: str) -> dict[str,
         speech = (response.get("outputSpeech") or {}).get("ssml")
         raise SetupError(f"the skill answered without a display: {speech}")
     raise SetupError("the simulation did not reach the skill; check the invocation name")
+
+
+def invite_testers(ask: Ask, skill_id: str, emails: list[str]) -> None:
+    """Beta test: create it if needed, add testers, start it. Testers see this skill's
+    Home Assistant, so invite only people who should see that home's data."""
+    try:
+        beta = ask.smapi("get-beta-test", "-s", skill_id, retries=2)
+    except SetupError as err:
+        if "status code 404" not in str(err):
+            raise
+        log("creating a beta test")
+        ask.smapi("create-beta-test", "-s", skill_id)
+        beta = wait(lambda: ask.smapi("get-beta-test", "-s", skill_id), "the beta test", 120, 5)
+    ask.smapi("add-testers-to-beta-test", "-s", skill_id, "--testers-emails", ",".join(emails))
+    if beta.get("status") != "RUNNING":
+        ask.smapi("start-beta-test", "-s", skill_id)
+        wait(lambda: ask.smapi("get-beta-test", "-s", skill_id).get("status") == "RUNNING",
+             "the beta test to start", 300, 6)
+    testers = ask.smapi("get-list-of-testers", "-s", skill_id).get("testers", [])
+    for t in testers:
+        log(f"beta tester {t['emailId']}: {t.get('invitationStatus')}")
 
 
 # --------------------------------------------------------------------------- Home Assistant
@@ -442,6 +492,11 @@ def main() -> int:
     parser.add_argument("--profile", default="default", help="ASK CLI profile")
     parser.add_argument("--ask", default=shutil.which("ask") or "ask", help="path to the ask binary")
     parser.add_argument("--skip-verify", action="store_true", help="do not simulate a launch at the end")
+    parser.add_argument(
+        "--invite", action="append", default=[], metavar="EMAIL",
+        help="invite this Amazon account email to a beta test of the skill (repeatable); "
+        "they get an email and can enable the skill on their own Echo",
+    )
     args = parser.parse_args()
     locales = args.locales or ["en-GB"]
     invocation = args.invocation.strip().lower()
@@ -460,10 +515,13 @@ def main() -> int:
             log(f'creating Alexa-hosted skill "{args.name}" ({", ".join(locales)}, {args.region})')
             skill_id = create_hosted_skill(ask, vendor, args.name, locales, REGIONS[args.region])
 
+        log("importing skill-package/ (manifest, interaction models, widget)")
+        import_package(ask, skill_id, build_package(locales, invocation, args.name, live_endpoint(ask, skill_id)))
+
         webhook_url = args.webhook_url
         ha = HomeAssistant(args.ha_url, args.ha_token) if args.ha_url and args.ha_token else None
         if ha and not webhook_url:
-            creds = ask.smapi("get-skill-credentials", "-s", skill_id)["skillMessagingCredentials"]
+            creds = skill_messaging_credentials(ask, skill_id)
             entries = [e for e in ha.entries() if e["title"] == args.ha_title] or ha.entries()
             if entries:
                 entry_id = entries[0]["entry_id"]
@@ -476,9 +534,6 @@ def main() -> int:
                 changes["dashboard_url"] = args.dashboard_url
             webhook_url = ha.update_options(entry_id, changes)
             log("Home Assistant configured; webhook URL read back (kept out of this output)")
-
-        log("importing skill-package/ (manifest, interaction models, widget)")
-        import_package(ask, skill_id, build_package(locales, invocation, args.name, live_endpoint(ask, skill_id)))
 
         log("deploying lambda/ with config.json")
         push_code(ask, skill_id, webhook_url, 6)
@@ -500,6 +555,8 @@ def main() -> int:
                 state = wait(lambda: ha.widget_status(args.ha_title), "the widget status sensor", 30, 3)
                 log(f"Home Assistant widget status: {state['state']} "
                     f"({state['attributes'].get('paired_accounts')} paired account(s))")
+        if args.invite:
+            invite_testers(ask, skill_id, args.invite)
     except SetupError as err:
         print(f"\nerror: {err}", file=sys.stderr)
         return 1
