@@ -313,6 +313,9 @@ def simulate(ask: Ask, skill_id: str, locale: str, invocation: str) -> dict[str,
     sim = ask.smapi(
         "simulate-skill", "-s", skill_id, "-g", "development",
         "--input-content", f"open {invocation}", "--device-locale", locale,
+        # The full-screen view keeps its session open for refreshes; without a new
+        # session the simulator would just end the previous one.
+        "--session-mode", "FORCE_NEW_SESSION",
     )
 
     def finished():
@@ -326,6 +329,8 @@ def simulate(ask: Ask, skill_id: str, locale: str, invocation: str) -> dict[str,
     if result["status"] != "SUCCESSFUL":
         raise SetupError(f"simulation {result['status']}: {json.dumps(result.get('result', {}).get('error'))}")
     for invocation_info in result["result"]["skillExecutionInfo"]["invocations"]:
+        if "invocationResponse" not in invocation_info:
+            continue  # e.g. SessionEndedRequest for an earlier session
         response = invocation_info["invocationResponse"]["body"].get("response", {})
         for directive in response.get("directives", []):
             energy = (directive.get("datasources") or {}).get("energy")
