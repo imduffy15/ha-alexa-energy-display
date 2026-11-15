@@ -134,7 +134,7 @@ def test_widget_lifecycle_events(calls):
 
 
 def test_help_and_stop(calls):
-    assert "open energy display" in run(intent("AMAZON.HelpIntent"))["outputSpeech"]["ssml"]
+    assert "ask about the battery" in run(intent("AMAZON.HelpIntent"))["outputSpeech"]["ssml"]
     assert run(intent("AMAZON.StopIntent"))["shouldEndSession"] is True
     assert calls == []
 
@@ -271,3 +271,44 @@ def test_smart_home_directive_is_forwarded(monkeypatch, tmp_path):
     out = lambda_function.lambda_handler(event, None)
     assert out == {"event": {"header": {"name": "Discover.Response"}}}
     assert sent == {"url": "https://ha.example.com/api/alexa_energy_display/smart_home", "auth": "Bearer TOK"}
+
+
+LIVE_TILES = [
+    {"id": "solar_now", "label": "Solar", "value": "330", "unit": "W", "color": "#F5B700", "sub": "now"},
+    {"id": "grid_now", "label": "Grid import", "value": "0", "unit": "W", "color": "#FF6B5A", "sub": "now"},
+    {"id": "battery", "label": "Battery", "value": "94", "unit": "%", "color": "#4DA3FF",
+     "sub": "discharging 1.82 kW", "percent": 94},
+    {"id": "home_now", "label": "Home", "value": "2.15", "unit": "kW", "color": "#B48CFF", "sub": "now"},
+    {"id": "solar_today", "label": "Solar", "value": "3.12", "unit": "kWh", "color": "#F5B700", "sub": "today"},
+    {"id": "import_today", "label": "Imported", "value": "12.0", "unit": "kWh", "color": "#FF6B5A", "sub": "today"},
+    {"id": "battery_today", "label": "Battery in / out", "value": "9.33/0.86", "unit": "kWh", "color": "#4DA3FF",
+     "sub": "today"},
+    {"id": "sensor.tariff", "label": "Tariff", "value": "0.23", "unit": "€/kWh", "color": "#3DD68C"},
+]
+
+
+def question(value, resolved=None):
+    slot = {"name": "metric", "value": value, "confirmationStatus": "NONE"}
+    if resolved:
+        slot["resolutions"] = {"resolutionsPerAuthority": [{
+            "authority": "amzn1.er-authority.echo-sdk.x.ENERGY_METRIC", "status": {"code": "ER_SUCCESS_MATCH"},
+            "values": [{"value": {"name": resolved, "id": resolved}}]}]}
+    return {"type": "IntentRequest", "intent": {"name": "EnergyQuestionIntent", "confirmationStatus": "NONE",
+                                                "slots": {"metric": slot}}}
+
+
+@pytest.mark.parametrize(
+    ("said", "resolved", "expected"),
+    [
+        ("battery level", "battery", "Battery is at 94 percent, discharging 1.82 kilowatts. Battery in / out today is 9.33 in, 0.86 kilowatt hours."),
+        ("solar", "solar", "Solar now is 330 watts. Solar today is 3.12 kilowatt hours."),
+        ("usage", "home", "Home now is 2.15 kilowatts."),
+        ("tariff", None, "Tariff is 0.23 €/kWh."),
+        ("gas", None, "I don't have gas on this display."),
+    ],
+)
+def test_energy_questions(monkeypatch, said, resolved, expected):
+    monkeypatch.setattr(ha_client, "call", lambda *a, **k: {"snapshot": {"tiles": LIVE_TILES}})
+    resp = run(question(said, resolved))
+    assert resp["outputSpeech"]["ssml"] == f"<speak>{expected}</speak>"
+    assert resp["shouldEndSession"] is True

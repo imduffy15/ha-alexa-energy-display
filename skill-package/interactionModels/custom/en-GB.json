@@ -45,9 +45,108 @@
             "show the full dashboard",
             "open home assistant"
           ]
+        },
+        {
+          "name": "EnergyQuestionIntent",
+          "slots": [
+            {
+              "name": "metric",
+              "type": "ENERGY_METRIC"
+            }
+          ],
+          "samples": [
+            "about {metric}",
+            "about the {metric}",
+            "about my {metric}",
+            "what's the {metric}",
+            "what is the {metric}",
+            "what's my {metric}",
+            "how is the {metric}",
+            "how's the {metric}",
+            "how's my {metric}",
+            "how is my {metric}",
+            "for the {metric}",
+            "tell me the {metric}",
+            "tell me about the {metric}",
+            "what's the {metric} doing",
+            "what is the {metric} doing",
+            "{metric}"
+          ]
         }
       ],
-      "types": []
+      "types": [
+        {
+          "name": "ENERGY_METRIC",
+          "values": [
+            {
+              "id": "battery",
+              "name": {
+                "value": "battery",
+                "synonyms": [
+                  "battery level",
+                  "the battery",
+                  "charge",
+                  "state of charge",
+                  "battery charge"
+                ]
+              }
+            },
+            {
+              "id": "solar",
+              "name": {
+                "value": "solar",
+                "synonyms": [
+                  "solar power",
+                  "the solar",
+                  "generation",
+                  "panels",
+                  "solar panels",
+                  "the sun"
+                ]
+              }
+            },
+            {
+              "id": "grid",
+              "name": {
+                "value": "grid",
+                "synonyms": [
+                  "the grid",
+                  "grid power",
+                  "import",
+                  "export",
+                  "electricity"
+                ]
+              }
+            },
+            {
+              "id": "home",
+              "name": {
+                "value": "home",
+                "synonyms": [
+                  "usage",
+                  "consumption",
+                  "the house",
+                  "the house usage",
+                  "load",
+                  "home usage"
+                ]
+              }
+            },
+            {
+              "id": "today",
+              "name": {
+                "value": "today",
+                "synonyms": [
+                  "today's energy",
+                  "daily totals",
+                  "today's totals",
+                  "the day"
+                ]
+              }
+            }
+          ]
+        }
+      ]
     }
   }
 }

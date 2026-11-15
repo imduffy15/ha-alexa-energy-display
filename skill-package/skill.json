@@ -9,8 +9,8 @@
           "description": "Energy Display shows solar, grid, battery and home energy from your own Home Assistant server as a full-screen view and as a home screen widget. It needs the Alexa Energy Display custom integration in Home Assistant.",
           "examplePhrases": [
             "Alexa, open energy display",
-            "Alexa, ask energy display to refresh",
-            "Alexa, ask energy display to open the dashboard"
+            "Alexa, ask energy display about the battery",
+            "Alexa, ask energy display how's the solar"
           ],
           "keywords": [
             "home assistant",
@@ -28,8 +28,8 @@
           "description": "Energy Display shows solar, grid, battery and home energy from your own Home Assistant server as a full-screen view and as a home screen widget. It needs the Alexa Energy Display custom integration in Home Assistant.",
           "examplePhrases": [
             "Alexa, open energy display",
-            "Alexa, ask energy display to refresh",
-            "Alexa, ask energy display to open the dashboard"
+            "Alexa, ask energy display about the battery",
+            "Alexa, ask energy display how's the solar"
           ],
           "keywords": [
             "home assistant",
@@ -47,8 +47,8 @@
           "description": "Energy Display shows solar, grid, battery and home energy from your own Home Assistant server as a full-screen view and as a home screen widget. It needs the Alexa Energy Display custom integration in Home Assistant.",
           "examplePhrases": [
             "Alexa, open energy display",
-            "Alexa, ask energy display to refresh",
-            "Alexa, ask energy display to open the dashboard"
+            "Alexa, ask energy display about the battery",
+            "Alexa, ask energy display how's the solar"
           ],
           "keywords": [
             "home assistant",
@@ -66,8 +66,8 @@
           "description": "Energy Display shows solar, grid, battery and home energy from your own Home Assistant server as a full-screen view and as a home screen widget. It needs the Alexa Energy Display custom integration in Home Assistant.",
           "examplePhrases": [
             "Alexa, open energy display",
-            "Alexa, ask energy display to refresh",
-            "Alexa, ask energy display to open the dashboard"
+            "Alexa, ask energy display about the battery",
+            "Alexa, ask energy display how's the solar"
           ],
           "keywords": [
             "home assistant",
@@ -85,8 +85,8 @@
           "description": "Energy Display shows solar, grid, battery and home energy from your own Home Assistant server as a full-screen view and as a home screen widget. It needs the Alexa Energy Display custom integration in Home Assistant.",
           "examplePhrases": [
             "Alexa, open energy display",
-            "Alexa, ask energy display to refresh",
-            "Alexa, ask energy display to open the dashboard"
+            "Alexa, ask energy display about the battery",
+            "Alexa, ask energy display how's the solar"
           ],
           "keywords": [
             "home assistant",
