@@ -23,6 +23,8 @@ def load_config() -> dict[str, Any]:
     """Read config.json beside this file; WEBHOOK_URL in the environment wins."""
     config: dict[str, Any] = {}
     path = os.path.join(_HERE, "config.json")
+    if not os.path.exists(path) and not os.environ.get("WEBHOOK_URL"):
+        raise NotConfigured(f"{path} does not exist; files here: {sorted(os.listdir(_HERE))}")
     if os.path.exists(path):
         with open(path, encoding="utf-8") as f:
             config = json.load(f)

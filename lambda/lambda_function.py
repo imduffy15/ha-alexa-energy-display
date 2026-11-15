@@ -16,7 +16,11 @@ from typing import Any
 import ask_sdk_core.utils as ask_utils
 import ha_client
 import views
-from ask_sdk_core.dispatch_components import AbstractExceptionHandler, AbstractRequestHandler
+from ask_sdk_core.dispatch_components import (
+    AbstractExceptionHandler,
+    AbstractRequestHandler,
+    AbstractRequestInterceptor,
+)
 from ask_sdk_core.handler_input import HandlerInput
 from ask_sdk_core.skill_builder import SkillBuilder
 
@@ -49,7 +53,8 @@ def show_energy(handler_input: HandlerInput, event_type: str):
     rb = handler_input.response_builder
     try:
         reply = ha_client.call(event_type, identity(handler_input))
-    except ha_client.NotConfigured:
+    except ha_client.NotConfigured as err:
+        logger.warning("Not configured: %s", err)
         text = "Energy Display is not set up yet. Add your Home Assistant webhook URL to the skill's config file."
         if has_screen(handler_input):
             rb.add_directive(views.render(None, text))
@@ -198,7 +203,24 @@ class ErrorHandler(AbstractExceptionHandler):
         )
 
 
+class LogRequestInterceptor(AbstractRequestInterceptor):
+    """One line per request in CloudWatch, without IDs or tokens."""
+
+    def process(self, handler_input):
+        envelope = handler_input.request_envelope
+        request = envelope.request
+        intent = getattr(getattr(request, "intent", None), "name", None)
+        logger.info(
+            "Request %s%s locale=%s screen=%s",
+            request.object_type,
+            f" intent={intent}" if intent else "",
+            getattr(request, "locale", None),
+            has_screen(handler_input),
+        )
+
+
 sb = SkillBuilder()
+sb.add_global_request_interceptor(LogRequestInterceptor())
 for handler in (
     LaunchHandler(),
     RefreshIntentHandler(),
