@@ -3,13 +3,13 @@
   "version": "2024.1",
   "theme": "dark",
   "background": "#0B1220",
-  "description": "Full-screen energy view. datasources.payload = snapshot + layout hints from lambda/views.py.",
+  "description": "Full-screen energy view. datasources.energy = snapshot + layout from lambda/views.py. The parameter must not be named 'payload': APL binds the whole datasources object to a lone 'payload' parameter. Works back to APL 1.3; views.py sets 'version' per device.",
   "settings": {
     "idleTimeout": 600000
   },
   "mainTemplate": {
     "parameters": [
-      "payload"
+      "energy"
     ],
     "items": [
       {
@@ -19,7 +19,7 @@
         "backgroundColor": "#0B1220",
         "handleTick": [
           {
-            "minimumDelay": "${payload.refreshMs}",
+            "minimumDelay": "${energy.refreshMs}",
             "commands": [
               {
                 "type": "SendEvent",
@@ -32,12 +32,12 @@
         ],
         "item": {
           "type": "Container",
-          "width": "100%",
-          "height": "100%",
-          "paddingLeft": "3vw",
-          "paddingRight": "3vw",
-          "paddingTop": "3vh",
-          "paddingBottom": "3vh",
+          "width": "100vw",
+          "height": "100vh",
+          "paddingLeft": "${energy.sidePadding}",
+          "paddingRight": "${energy.sidePadding}",
+          "paddingTop": "${energy.topPadding}",
+          "paddingBottom": "${energy.bottomPadding}",
           "items": [
             {
               "type": "Container",
@@ -51,149 +51,156 @@
               "items": [
                 {
                   "type": "Text",
-                  "text": "${payload.title}",
+                  "text": "${energy.title}",
                   "color": "#FFFFFF",
-                  "fontSize": "6vh",
+                  "fontSize": "${energy.headSize}",
                   "fontWeight": "bold",
                   "maxLines": 1,
                   "shrink": 1
                 },
                 {
                   "type": "Text",
-                  "text": "Updated ${payload.updated}",
+                  "when": "${energy.showUpdated}",
+                  "text": "Updated ${energy.updated}",
                   "color": "#7F8EA6",
-                  "fontSize": "3.5vh",
+                  "fontSize": "${energy.updatedSize}",
                   "maxLines": 1
                 }
               ]
             },
             {
               "type": "Container",
-              "when": "${payload.status == 'ok'}",
+              "when": "${energy.status == 'ok'}",
               "width": "100%",
-              "height": "84vh",
-              "direction": "row",
-              "wrap": "wrap",
-              "data": "${payload.tiles}",
+              "height": "${energy.bodyHeight}",
+              "data": "${energy.rows}",
               "item": {
                 "type": "Container",
-                "width": "${payload.tileWidth}",
-                "height": "${payload.tileHeight}",
-                "padding": "1vh",
-                "bind": [
-                  {
-                    "name": "tile",
-                    "value": "${data}"
-                  }
-                ],
-                "items": [
-                  {
-                    "type": "Frame",
-                    "width": "100%",
-                    "height": "100%",
-                    "backgroundColor": "#141D2E",
-                    "borderRadius": "2vh",
-                    "item": {
-                      "type": "Container",
+                "width": "100%",
+                "height": "${energy.rowHeight}",
+                "direction": "row",
+                "data": "${data}",
+                "item": {
+                  "type": "Container",
+                  "width": "${energy.tileWidth}",
+                  "height": "100%",
+                  "padding": "${energy.cellPad}",
+                  "bind": [
+                    {
+                      "name": "tile",
+                      "value": "${data}"
+                    }
+                  ],
+                  "items": [
+                    {
+                      "type": "Frame",
                       "width": "100%",
                       "height": "100%",
-                      "direction": "row",
-                      "items": [
-                        {
-                          "type": "Frame",
-                          "width": "0.8vh",
-                          "height": "100%",
-                          "backgroundColor": "${tile.color}",
-                          "borderRadius": "2vh"
-                        },
-                        {
-                          "type": "Container",
-                          "width": "100%",
-                          "height": "100%",
-                          "shrink": 1,
-                          "paddingLeft": "2.5vh",
-                          "paddingRight": "2vh",
-                          "justifyContent": "center",
-                          "items": [
-                            {
-                              "type": "Text",
-                              "text": "${tile.label}",
-                              "color": "#A9B7CC",
-                              "fontSize": "${payload.labelSize}",
-                              "maxLines": 1
-                            },
-                            {
-                              "type": "Container",
-                              "direction": "row",
-                              "alignItems": "baseline",
-                              "items": [
-                                {
-                                  "type": "Text",
-                                  "text": "${tile.value}",
-                                  "color": "${tile.color}",
-                                  "fontSize": "${payload.valueSize}",
-                                  "fontWeight": "bold",
-                                  "maxLines": 1
-                                },
-                                {
-                                  "type": "Text",
-                                  "text": "${tile.unit}",
-                                  "color": "#DDE5F0",
-                                  "fontSize": "${payload.labelSize}",
-                                  "paddingLeft": "1vh",
-                                  "maxLines": 1
-                                }
-                              ]
-                            },
-                            {
-                              "type": "Text",
-                              "when": "${tile.sub}",
-                              "text": "${tile.sub}",
-                              "color": "#7F8EA6",
-                              "fontSize": "${payload.subSize}",
-                              "maxLines": 1
-                            },
-                            {
-                              "type": "Container",
-                              "when": "${tile.percent != null}",
-                              "width": "100%",
-                              "paddingTop": "1vh",
-                              "items": [
-                                {
-                                  "type": "Frame",
-                                  "width": "100%",
-                                  "height": "1.2vh",
-                                  "backgroundColor": "#24304A",
-                                  "borderRadius": "1vh",
-                                  "item": {
-                                    "type": "Frame",
-                                    "width": "${tile.percent}%",
-                                    "height": "100%",
-                                    "backgroundColor": "${tile.color}",
-                                    "borderRadius": "1vh"
+                      "backgroundColor": "#141D2E",
+                      "borderRadius": "2vh",
+                      "item": {
+                        "type": "Container",
+                        "width": "100%",
+                        "height": "100%",
+                        "direction": "row",
+                        "items": [
+                          {
+                            "type": "Frame",
+                            "width": "0.8vh",
+                            "height": "100%",
+                            "backgroundColor": "${tile.color}",
+                            "borderRadius": "2vh"
+                          },
+                          {
+                            "type": "Container",
+                            "width": "100%",
+                            "height": "100%",
+                            "shrink": 1,
+                            "paddingLeft": "${energy.innerPad}",
+                            "paddingRight": "${energy.innerPad}",
+                            "justifyContent": "center",
+                            "items": [
+                              {
+                                "type": "Text",
+                                "text": "${tile.label}",
+                                "color": "#A9B7CC",
+                                "fontSize": "${energy.labelSize}",
+                                "maxLines": 1
+                              },
+                              {
+                                "type": "Container",
+                                "direction": "row",
+                                "alignItems": "end",
+                                "items": [
+                                  {
+                                    "type": "Text",
+                                    "text": "${tile.value}",
+                                    "color": "${tile.color}",
+                                    "fontSize": "${energy.valueSize}",
+                                    "fontWeight": "bold",
+                                    "maxLines": 1
+                                  },
+                                  {
+                                    "type": "Text",
+                                    "text": "${tile.unit}",
+                                    "color": "#DDE5F0",
+                                    "fontSize": "${energy.labelSize}",
+                                    "paddingLeft": "1vh",
+                                    "paddingBottom": "0.6vh",
+                                    "maxLines": 1
                                   }
-                                }
-                              ]
-                            }
-                          ]
-                        }
-                      ]
+                                ]
+                              },
+                              {
+                                "type": "Text",
+                                "when": "${tile.sub}",
+                                "text": "${tile.sub}",
+                                "color": "#7F8EA6",
+                                "fontSize": "${energy.subSize}",
+                                "maxLines": 1
+                              },
+                              {
+                                "type": "Container",
+                                "when": "${tile.percent != null}",
+                                "width": "100%",
+                                "paddingTop": "1vh",
+                                "items": [
+                                  {
+                                    "type": "Frame",
+                                    "width": "100%",
+                                    "height": "1.2vh",
+                                    "backgroundColor": "#24304A",
+                                    "borderRadius": "1vh",
+                                    "item": {
+                                      "type": "Frame",
+                                      "width": "${tile.percent}%",
+                                      "height": "100%",
+                                      "backgroundColor": "${tile.color}",
+                                      "borderRadius": "1vh"
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
                     }
-                  }
-                ]
+                  ]
+                }
               }
             },
             {
               "type": "Container",
-              "when": "${payload.status != 'ok'}",
+              "when": "${energy.status != 'ok'}",
               "width": "100%",
-              "height": "84vh",
+              "height": "${energy.bodyHeight}",
               "justifyContent": "center",
               "alignItems": "center",
               "items": [
                 {
                   "type": "Text",
-                  "text": "${payload.message}",
+                  "text": "${energy.message}",
                   "color": "#A9B7CC",
                   "fontSize": "4.5vh",
                   "textAlign": "center",

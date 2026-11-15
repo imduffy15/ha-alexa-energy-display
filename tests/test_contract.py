@@ -28,9 +28,20 @@ def test_tile_fields_exist():
         assert refs(doc, "tile") <= TILE_KEYS, doc
 
 
-def test_fullscreen_payload_fields_exist():
-    payload = views.fullscreen_payload(assemble("Energy", [tile("a", "A", "1", "kW")]))
-    assert refs(FULL, "payload") <= set(payload)
+def test_fullscreen_fields_exist():
+    data = views.fullscreen_data(assemble("Energy", [tile("a", "A", "1", "kW")]))
+    assert refs(FULL, "energy") <= set(data)
+    assert refs(FULL, "energy"), "document no longer binds to the energy parameter"
+
+
+def test_no_lone_payload_parameter():
+    """A single mainTemplate parameter named 'payload' receives the whole datasources object."""
+    for doc in (FULL, WIDGET):
+        params = json.loads(doc.read_text())["mainTemplate"].get("parameters", [])
+        assert params != ["payload"], doc
+    directive = views.render(assemble("Energy", [tile("a", "A", "1", "kW")]))
+    params = directive.document["mainTemplate"]["parameters"]
+    assert set(params) == set(directive.datasources), "datasources keys must match parameters"
 
 
 def test_widget_datastore_fields_exist():

@@ -59,10 +59,12 @@ def directive_types(resp):
 def test_launch_renders_fullscreen_and_pairs(calls):
     resp = run(LAUNCH)
     assert directive_types(resp) == ["Alexa.Presentation.APL.RenderDocument"]
-    payload = resp["directives"][0]["datasources"]["payload"]
-    assert payload["tiles"] == SNAPSHOT["tiles"]
-    assert payload["status"] == "ok"
-    assert payload["tileWidth"] == "50.0000%" and payload["tileHeight"] == "100.0000%"
+    directive = resp["directives"][0]
+    energy = directive["datasources"]["energy"]
+    assert energy["rows"] == [SNAPSHOT["tiles"]]
+    assert energy["status"] == "ok"
+    assert energy["tileWidth"] == "50.0000%"
+    assert directive["document"]["version"] == "2024.1"
     assert "shouldEndSession" not in resp  # stays on screen, mic closed
     assert "outputSpeech" not in resp
     event, ident, _ = calls[0]
@@ -109,8 +111,8 @@ def test_not_configured(monkeypatch, tmp_path):
     monkeypatch.setattr(ha_client, "_HERE", str(tmp_path))
     resp = run(LAUNCH)
     assert "not set up" in resp["outputSpeech"]["ssml"]
-    payload = resp["directives"][0]["datasources"]["payload"]
-    assert payload["status"] == "message" and "webhook" in payload["message"]
+    energy = resp["directives"][0]["datasources"]["energy"]
+    assert energy["status"] == "message" and "webhook" in energy["message"]
 
 
 def test_home_assistant_down(monkeypatch):
@@ -137,14 +139,57 @@ def test_help_and_stop(calls):
     assert calls == []
 
 
-@pytest.mark.parametrize(
-    ("count", "cols", "rows"),
-    [(0, 1, 1), (1, 1, 1), (4, 2, 2), (5, 3, 2), (9, 3, 3), (12, 4, 3), (40, 4, 3)],
-)
-def test_layout(count, cols, rows):
-    out = views.layout(count)
+TILES = [{"id": str(i), "label": f"T{i}", "value": "1", "unit": "kW", "color": "#fff"} for i in range(12)]
+
+# (name, width, height, shape, mode, tiles, expected columns, expected rows)
+DEVICES = [
+    ("Echo Show 5", 960, 480, "RECTANGLE", "HUB", 9, 3, 3),
+    ("Echo Show 8/10", 1280, 800, "RECTANGLE", "HUB", 9, 3, 3),
+    ("Echo Show 8 four tiles", 1280, 800, "RECTANGLE", "HUB", 4, 2, 2),
+    ("Echo Show 15 landscape", 1920, 1080, "RECTANGLE", "HUB", 12, 4, 3),
+    ("Echo Show 15 portrait", 1080, 1920, "RECTANGLE", "HUB", 9, 2, 5),
+    ("Echo Show 15 portrait six", 1080, 1920, "RECTANGLE", "HUB", 6, 2, 3),
+    ("Echo Spot (2017, round)", 480, 480, "ROUND", "HUB", 9, 2, 2),
+    ("Echo Spot (2024)", 320, 240, "RECTANGLE", "HUB", 9, 2, 2),
+    ("Fire TV", 1920, 1080, "RECTANGLE", "TV", 9, 3, 3),
+    ("Fire tablet portrait", 800, 1280, "RECTANGLE", "MOBILE", 9, 2, 5),
+    ("one tile", 1280, 800, "RECTANGLE", "HUB", 1, 1, 1),
+]
+
+
+@pytest.mark.parametrize(("name", "w", "h", "shape", "mode", "count", "cols", "rows"), DEVICES, ids=[d[0] for d in DEVICES])
+def test_layout_per_device(name, w, h, shape, mode, count, cols, rows):
+    screen = views.Screen(w, h, shape, mode)
+    out = views.layout(TILES[:count], screen)
+    assert len(out["rows"]) == rows
+    assert max(len(r) for r in out["rows"]) == cols
     assert out["tileWidth"] == f"{100 / cols:.4f}%"
-    assert out["tileHeight"] == f"{100 / rows:.4f}%"
+    # Text must fit its cell: value height (vh) under the row height, and the
+    # value's width estimate (6 chars at ~0.6 em) under the cell width.
+    value_vh = float(out["valueSize"].rstrip("vh"))
+    row_vh = float(out["rowHeight"].rstrip("vh"))
+    assert value_vh * 2.2 < row_vh, name
+    cell_px = w * 0.94 / cols
+    assert value_vh / 100 * h * 0.6 * 4 < cell_px, name
+
+
+@pytest.mark.parametrize(
+    ("device", "expected"), [(None, "1.3"), ("1.3", "1.3"), ("1.8", "1.8"), ("2023.2", "2023.2"), ("2024.3", "2024.1"), ("1.0", "1.3")]
+)
+def test_document_version_follows_device(device, expected):
+    assert views.document_version(device) == expected
+
+
+def test_old_renderer_gets_old_version(calls):
+    env = envelope(LAUNCH)
+    env["context"]["System"]["device"]["supportedInterfaces"]["Alexa.Presentation.APL"]["runtime"]["maxVersion"] = "1.3"
+    env["context"]["Viewport"] = {"shape": "ROUND", "pixelWidth": 480, "pixelHeight": 480, "currentPixelWidth": 480,
+                                  "currentPixelHeight": 480, "dpi": 160, "mode": "HUB", "touch": ["SINGLE"]}
+    resp = lambda_function.lambda_handler(env, None)["response"]
+    directive = resp["directives"][0]
+    assert directive["document"]["version"] == "1.3"
+    assert directive["datasources"]["energy"]["sidePadding"] == "15vw"
+    assert directive["datasources"]["energy"]["showUpdated"] is False
 
 
 class _Resp:

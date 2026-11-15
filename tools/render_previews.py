@@ -80,21 +80,27 @@ def tile_html(t, *, value, label, unit, sub, accent, radius, pad, padl, padr, ba
     )
 
 
-def fullscreen_html(snapshot):
-    p = views.fullscreen_payload(snapshot)
-    cells = "".join(
-        f'<div class="cell" style="width:{p["tileWidth"]};height:{p["tileHeight"]};padding:1vh">'
-        + tile_html(t, value=p["valueSize"], label=p["labelSize"], unit=p["labelSize"], sub=p["subSize"],
-                    accent="0.8vh", radius="2vh", pad="1vh", padl="2.5vh", padr="2vh", bar="1.2vh", barpad="1vh",
-                    sub_when_bar=True)
+def fullscreen_html(snapshot, screen=None):
+    p = views.fullscreen_data(snapshot, screen=screen)
+    rows = "".join(
+        f'<div style="display:flex;width:100%;height:{p["rowHeight"]}">'
+        + "".join(
+            f'<div class="cell" style="width:{p["tileWidth"]};height:100%;padding:{p["cellPad"]}">'
+            + tile_html(t, value=p["valueSize"], label=p["labelSize"], unit=p["labelSize"], sub=p["subSize"],
+                        accent="0.8vh", radius="2vh", pad=p["cellPad"], padl=p["innerPad"], padr=p["innerPad"], bar="1.2vh", barpad="1vh",
+                        sub_when_bar=True)
+            + "</div>"
+            for t in row
+        )
         + "</div>"
-        for t in p["tiles"]
+        for row in p["rows"]
     )
+    updated = f'<div class="upd" style="font-size:{p["updatedSize"]}">Updated {p["updated"]}</div>' if p["showUpdated"] else ""
     return (
-        f'<div class="root" style="padding:3vh 3vw">'
-        f'<div class="head" style="height:10vh;padding:0 1vh"><div class="title" style="font-size:6vh">{html.escape(p["title"])}</div>'
-        f'<div class="upd" style="font-size:3.5vh">Updated {p["updated"]}</div></div>'
-        f'<div class="grid" style="height:84vh">{cells}</div></div>'
+        f'<div class="root" style="padding:{p["topPadding"]} {p["sidePadding"]} {p["bottomPadding"]}">'
+        f'<div class="head" style="height:10vh;padding:0 1vh"><div class="title" style="font-size:{p["headSize"]}">{html.escape(p["title"])}</div>'
+        f'{updated}</div>'
+        f'<div style="height:{p["bodyHeight"]}">{rows}</div></div>'
     )
 
 
@@ -151,10 +157,18 @@ def main() -> None:
     shoot(args.chrome, icon_html(), assets / "widget-icon-450.png", 450, 450)
     shoot(args.chrome, icon_html(), assets / "icon-512.png", 512, 512)
     shoot(args.chrome, icon_html(), assets / "icon-108.png", 108, 108)
-    shoot(args.chrome, fullscreen_html(snapshot), docs / "fullscreen-echo-show-8.png", 1280, 800)
-    shoot(args.chrome, fullscreen_html(assemble("Energy", SAMPLE[:4], datetime(2026, 11, 15, 14, 5))),
-          docs / "fullscreen-4-tiles.png", 1280, 800)
-    shoot(args.chrome, fullscreen_html(snapshot), docs / "fullscreen-echo-show-5.png", 960, 480)
+    devices = [
+        ("echo-show-8", 1280, 800, "RECTANGLE", "HUB"),
+        ("echo-show-5", 960, 480, "RECTANGLE", "HUB"),
+        ("echo-show-15-portrait", 1080, 1920, "RECTANGLE", "HUB"),
+        ("echo-spot-round", 480, 480, "ROUND", "HUB"),
+        ("echo-spot-2024", 320, 240, "RECTANGLE", "HUB"),
+        ("fire-tv", 1920, 1080, "RECTANGLE", "TV"),
+    ]
+    for name, w, h, shape, mode in devices:
+        shoot(args.chrome, fullscreen_html(snapshot, views.Screen(w, h, shape, mode)), docs / f"fullscreen-{name}.png", w, h)
+    four = assemble("Energy", SAMPLE[:4], datetime(2026, 11, 15, 14, 5))
+    shoot(args.chrome, fullscreen_html(four), docs / "fullscreen-4-tiles.png", 1280, 800)
 
 
 if __name__ == "__main__":

@@ -49,6 +49,34 @@ def has_screen(handler_input: HandlerInput) -> bool:
     return getattr(interfaces, "alexa_presentation_apl", None) is not None
 
 
+def _enum_value(value) -> str | None:
+    return getattr(value, "value", value)
+
+
+def screen_of(handler_input: HandlerInput) -> views.Screen:
+    """The requesting device's display, from context.Viewport."""
+    vp = handler_input.request_envelope.context.viewport
+    if vp is None:
+        return views.Screen()
+    return views.Screen(
+        width=vp.current_pixel_width or vp.pixel_width or 1280,
+        height=vp.current_pixel_height or vp.pixel_height or 800,
+        shape=_enum_value(vp.shape) or "RECTANGLE",
+        mode=_enum_value(vp.mode) or "HUB",
+    )
+
+
+def apl_version(handler_input: HandlerInput) -> str | None:
+    device = handler_input.request_envelope.context.system.device
+    apl = getattr(device.supported_interfaces, "alexa_presentation_apl", None) if device else None
+    runtime = getattr(apl, "runtime", None)
+    return getattr(runtime, "max_version", None)
+
+
+def render(handler_input: HandlerInput, snapshot, message=None):
+    return views.render(snapshot, message, screen_of(handler_input), apl_version(handler_input))
+
+
 def show_energy(handler_input: HandlerInput, event_type: str):
     rb = handler_input.response_builder
     try:
@@ -57,19 +85,19 @@ def show_energy(handler_input: HandlerInput, event_type: str):
         logger.warning("Not configured: %s", err)
         text = "Energy Display is not set up yet. Add your Home Assistant webhook URL to the skill's config file."
         if has_screen(handler_input):
-            rb.add_directive(views.render(None, text))
+            rb.add_directive(render(handler_input, None, text))
         return rb.speak(text).set_should_end_session(True).response
     except ha_client.HomeAssistantError as err:
         logger.warning("%s", err)
         text = "I couldn't reach Home Assistant."
         if has_screen(handler_input):
-            rb.add_directive(views.render(None, text + " Check that it is reachable from the internet."))
+            rb.add_directive(render(handler_input, None, text + " Check that it is reachable from the internet."))
         return rb.speak(text).set_should_end_session(True).response
 
     snapshot = reply.get("snapshot") or {}
     if not has_screen(handler_input):
         return rb.speak(snapshot.get("speech") or "There is no energy data yet.").set_should_end_session(True).response
-    rb.add_directive(views.render(snapshot))
+    rb.add_directive(render(handler_input, snapshot))
     # Leave shouldEndSession unset: the document stays on screen without opening the
     # microphone, and its tick handler sends "refresh" events.
     return rb.response
@@ -121,7 +149,7 @@ class OpenDashboardHandler(AbstractRequestHandler):
                 .set_should_end_session(True)
                 .response
             )
-        for directive in views.open_url(url):
+        for directive in views.open_url(url, apl_version(handler_input)):
             rb.add_directive(directive)
         return rb.response
 
@@ -210,12 +238,17 @@ class LogRequestInterceptor(AbstractRequestInterceptor):
         envelope = handler_input.request_envelope
         request = envelope.request
         intent = getattr(getattr(request, "intent", None), "name", None)
+        screen = screen_of(handler_input)
         logger.info(
-            "Request %s%s locale=%s screen=%s",
+            "Request %s%s locale=%s apl=%s viewport=%sx%s %s %s",
             request.object_type,
             f" intent={intent}" if intent else "",
             getattr(request, "locale", None),
-            has_screen(handler_input),
+            apl_version(handler_input) if has_screen(handler_input) else "none",
+            screen.width,
+            screen.height,
+            screen.shape,
+            screen.mode,
         )
 
 

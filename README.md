@@ -18,6 +18,10 @@ flashing firmware, sideloading apps or keeping a browser open.
 | --- | --- |
 | ![Full-screen view](docs/images/fullscreen-echo-show-8.png) | ![Widget](skill-package/assets/widget-preview-328x552.png) |
 
+| Echo Show 5 | Echo Show 15 portrait | Echo Spot | Fire TV |
+| --- | --- | --- | --- |
+| ![](docs/images/fullscreen-echo-show-5.png) | ![](docs/images/fullscreen-echo-show-15-portrait.png) | ![](docs/images/fullscreen-echo-spot-round.png) | ![](docs/images/fullscreen-fire-tv.png) |
+
 The images are mock-ups drawn from the same layout rules as the APL documents, using
 sample data. They are not device screenshots.
 
@@ -43,7 +47,10 @@ Details are in [docs/HOW-IT-WORKS.md](docs/HOW-IT-WORKS.md).
 
 ## Requirements
 
-- An Echo Show. The full-screen view works on any Echo Show and on Fire TV with Alexa.
+- Any Alexa device with a screen. The full-screen view adapts to the size, shape,
+  orientation and APL version each device reports: Echo Show 5/8/10/15/21 (landscape
+  and portrait), Echo Spot (round and 2024), Echo Hub, Fire TV, Fire tablets in Show
+  mode and Alexa in the car. Devices back to APL 1.3 are supported.
   The widget needs a device with widget support, which Amazon doesn't fully list: Echo
   Show 8 (2nd gen or later), 10, 15 or 21. On the Show 8 it sits behind the home
   screen's widget shortcut.
