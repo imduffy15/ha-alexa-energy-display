@@ -34,7 +34,7 @@
     "step": {
       "init": {
         "title": "Alexa Energy Display",
-        "description": "Skill webhook URL (keep it private; put it in the skill's `lambda/config.json`):\n\n`{webhook_url}`",
+        "description": "Skill webhook URL (keep it private; put it in the skill's `lambda/config.json`):\n\n`{webhook_url}`\n\nVoice (Alexa smart home skill): point its Lambda at this Home Assistant; devices are named Solar, Grid, Battery, Home Energy plus your extra entities, with the optional prefix. Add the smart home skill's messaging credentials so Alexa routines can react to battery and grid changes.",
         "data": {
           "title": "Title",
           "client_id": "Skill messaging client ID",
@@ -45,7 +45,10 @@
           "dashboard_url": "Dashboard URL for \"open the dashboard\" (optional)",
           "update_interval": "Update interval",
           "skill_id": "Only accept this skill ID (optional)",
-          "forget_accounts": "Forget paired Alexa accounts"
+          "forget_accounts": "Forget paired Alexa accounts",
+          "voice_prefix": "Voice device name prefix (optional, e.g. Ballyer)",
+          "smart_home_client_id": "Smart home skill messaging client ID (optional)",
+          "smart_home_client_secret": "Smart home skill messaging client secret (optional)"
         }
       }
     },
@@ -69,7 +72,9 @@
       }
     },
     "button": {
-      "push_now": {"name": "Push to widget now"}
+      "push_now": {
+        "name": "Push to widget now"
+      }
     }
   }
 }

@@ -7,18 +7,32 @@ import logging
 from homeassistant.components import persistent_notification, webhook
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.network import NoURLAvailableError
+from homeassistant.helpers.typing import ConfigType
 
-from .const import CONF_CLOUDHOOK_URL, CONF_WEBHOOK_ID, DOMAIN
+from .const import CONF_CLOUDHOOK_URL, CONF_WEBHOOK_ID, DATA_SMART_HOME, DOMAIN
 from .coordinator import EnergyDisplayCoordinator
 from .skill_webhook import async_handle_webhook
+from .smart_home import SmartHome, SmartHomeView
 
 _LOGGER = logging.getLogger(__name__)
 
 PLATFORMS: list[Platform] = [Platform.BUTTON, Platform.SENSOR]
 
 type EnergyDisplayConfigEntry = ConfigEntry[EnergyDisplayCoordinator]
+
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
+
+
+async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
+    """Register the smart home endpoint once; it serves every config entry."""
+    smart_home = SmartHome(hass)
+    await smart_home.grants.async_load()
+    hass.data[DATA_SMART_HOME] = smart_home
+    hass.http.register_view(SmartHomeView(smart_home))
+    return True
 
 
 async def async_webhook_url(hass: HomeAssistant, entry: ConfigEntry) -> str | None:
@@ -68,6 +82,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: EnergyDisplayConfigEntry
         allowed_methods=["POST"],
     )
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+
+    smart_home: SmartHome = hass.data[DATA_SMART_HOME]
+
+    @callback
+    def _report_changes() -> None:
+        hass.async_create_background_task(smart_home.async_report_changes(), f"{DOMAIN}_change_report")
+
+    entry.async_on_unload(coordinator.async_add_listener(_report_changes))
 
     if not coordinator.users:
         url = await async_webhook_url(hass, entry)

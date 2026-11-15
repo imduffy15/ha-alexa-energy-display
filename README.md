@@ -11,6 +11,10 @@ flashing firmware, sideloading apps or keeping a browser open.
   (live power and today's kWh), and/or any other entities you pick (tariffs, EV charge,
   inverter mode, temperatures and so on).
 - **Voice on screenless Echos**: the same skill reads the numbers out.
+- **Voice and routines (optional second skill)**: Solar, Grid, Battery and Home Energy
+  become read-only Alexa smart home devices, account-linked to Home Assistant, so you can
+  ask "Alexa, what's the battery level?" and trigger routines on battery or grid changes.
+  See [docs/INSTALL-VOICE.md](docs/INSTALL-VOICE.md).
 - **Optional**: "Alexa, ask energy display to open the dashboard" opens any Home
   Assistant dashboard in the Echo's Silk browser.
 
@@ -64,9 +68,12 @@ Details are in [docs/HOW-IT-WORKS.md](docs/HOW-IT-WORKS.md).
 
 1. **Home Assistant integration**: [docs/INSTALL-HOME-ASSISTANT.md](docs/INSTALL-HOME-ASSISTANT.md)
    (HACS custom repository, about 5 minutes).
-2. **Alexa skill and widget**: [docs/INSTALL-SKILL.md](docs/INSTALL-SKILL.md)
-   (Alexa developer console, about 20 minutes).
-3. On your Echo, say **"Alexa, open energy display"** once. This pairs your Alexa
+2. **Alexa skill and widget**: run `tools/setup_skill.py` (ASK CLI, a few minutes, see
+   [docs/INSTALL-SKILL.md](docs/INSTALL-SKILL.md#automatic-setup-recommended)), or follow
+   the manual console steps in the same guide.
+3. Optional voice skill: `tools/setup_smart_home.py`
+   ([docs/INSTALL-VOICE.md](docs/INSTALL-VOICE.md)).
+4. On your Echo, say **"Alexa, open energy display"** once. This pairs your Alexa
    account with Home Assistant, and the widget starts updating.
 
 ## Status and limits
@@ -109,8 +116,9 @@ Repository layout:
 | --- | --- |
 | `skill-package/` | Skill manifest, interaction models, widget package (`dataStorePackages/EnergyWidget`), icons |
 | `lambda/` | Skill code (Python, ask-sdk-core); `apl/fullscreen.json` is the full-screen document |
+| `smart-home/` | Voice smart home skill: Lambda forwarder and manifest |
 | `custom_components/alexa_energy_display/` | Home Assistant integration (HACS) |
 | `tests/` | `skill/` handler tests, `integration/` HA tests, `test_contract.py` APL field checks |
-| `tools/` | APL validator, preview renderer |
+| `tools/` | `setup_skill.py`, `setup_smart_home.py` (ASK CLI automation), APL validator, preview renderer |
 
 MIT licensed. Not affiliated with Amazon or Home Assistant / Nabu Casa.

@@ -10,7 +10,14 @@ from homeassistant.core import HomeAssistant
 from . import EnergyDisplayConfigEntry
 from .const import CONF_CLIENT_SECRET, CONF_CLOUDHOOK_URL, CONF_WEBHOOK_ID
 
-TO_REDACT = {CONF_CLIENT_SECRET, CONF_WEBHOOK_ID, CONF_CLOUDHOOK_URL, "client_id"}
+TO_REDACT = {
+    CONF_CLIENT_SECRET,
+    CONF_WEBHOOK_ID,
+    CONF_CLOUDHOOK_URL,
+    "client_id",
+    "smart_home_client_id",
+    "smart_home_client_secret",
+}
 
 
 async def async_get_config_entry_diagnostics(

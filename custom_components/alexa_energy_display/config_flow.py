@@ -32,10 +32,13 @@ from .const import (
     CONF_DASHBOARD_URL,
     CONF_ENTITIES,
     CONF_ENTITIES_FIRST,
+    CONF_SH_CLIENT_ID,
+    CONF_SH_CLIENT_SECRET,
     CONF_SKILL_ID,
     CONF_TITLE,
     CONF_UPDATE_INTERVAL,
     CONF_USE_ENERGY,
+    CONF_VOICE_PREFIX,
     CONF_WEBHOOK_ID,
     DEFAULT_TITLE,
     DEFAULT_UPDATE_INTERVAL,
@@ -178,6 +181,15 @@ class EnergyDisplayOptionsFlow(OptionsFlowWithReload):
                 vol.Required(CONF_TITLE, default=current.get(CONF_TITLE, DEFAULT_TITLE)): TextSelector(),
                 **_credentials_schema(current),
                 **_sources_schema(current),
+                vol.Optional(
+                    CONF_VOICE_PREFIX, description={"suggested_value": current.get(CONF_VOICE_PREFIX)}
+                ): TextSelector(),
+                vol.Optional(
+                    CONF_SH_CLIENT_ID, description={"suggested_value": current.get(CONF_SH_CLIENT_ID)}
+                ): TextSelector(),
+                vol.Optional(
+                    CONF_SH_CLIENT_SECRET, description={"suggested_value": current.get(CONF_SH_CLIENT_SECRET)}
+                ): TextSelector(TextSelectorConfig(type=TextSelectorType.PASSWORD)),
                 vol.Required(CONF_FORGET, default=False): BooleanSelector(),
             }
         )

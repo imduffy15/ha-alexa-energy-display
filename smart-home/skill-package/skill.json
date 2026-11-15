@@ -1,0 +1,130 @@
+{
+  "manifest": {
+    "manifestVersion": "1.0",
+    "publishingInformation": {
+      "locales": {
+        "en-US": {
+          "name": "Energy Display Voice",
+          "summary": "Ask Alexa about your Home Assistant solar, grid and battery.",
+          "description": "Exposes your Home Assistant energy data as read-only Alexa devices (Solar, Grid, Battery, Home Energy) so you can ask for values and use them in routines. Requires the Alexa Energy Display integration.",
+          "examplePhrases": [
+            "Alexa, what's the battery level?",
+            "Alexa, what is the solar power?",
+            "Alexa, discover devices"
+          ],
+          "keywords": [
+            "home assistant",
+            "energy",
+            "solar",
+            "battery"
+          ],
+          "smallIconUri": "https://raw.githubusercontent.com/imduffy15/ha-alexa-energy-display/main/skill-package/assets/icon-108.png",
+          "largeIconUri": "https://raw.githubusercontent.com/imduffy15/ha-alexa-energy-display/main/skill-package/assets/icon-512.png"
+        },
+        "en-GB": {
+          "name": "Energy Display Voice",
+          "summary": "Ask Alexa about your Home Assistant solar, grid and battery.",
+          "description": "Exposes your Home Assistant energy data as read-only Alexa devices (Solar, Grid, Battery, Home Energy) so you can ask for values and use them in routines. Requires the Alexa Energy Display integration.",
+          "examplePhrases": [
+            "Alexa, what's the battery level?",
+            "Alexa, what is the solar power?",
+            "Alexa, discover devices"
+          ],
+          "keywords": [
+            "home assistant",
+            "energy",
+            "solar",
+            "battery"
+          ],
+          "smallIconUri": "https://raw.githubusercontent.com/imduffy15/ha-alexa-energy-display/main/skill-package/assets/icon-108.png",
+          "largeIconUri": "https://raw.githubusercontent.com/imduffy15/ha-alexa-energy-display/main/skill-package/assets/icon-512.png"
+        },
+        "en-AU": {
+          "name": "Energy Display Voice",
+          "summary": "Ask Alexa about your Home Assistant solar, grid and battery.",
+          "description": "Exposes your Home Assistant energy data as read-only Alexa devices (Solar, Grid, Battery, Home Energy) so you can ask for values and use them in routines. Requires the Alexa Energy Display integration.",
+          "examplePhrases": [
+            "Alexa, what's the battery level?",
+            "Alexa, what is the solar power?",
+            "Alexa, discover devices"
+          ],
+          "keywords": [
+            "home assistant",
+            "energy",
+            "solar",
+            "battery"
+          ],
+          "smallIconUri": "https://raw.githubusercontent.com/imduffy15/ha-alexa-energy-display/main/skill-package/assets/icon-108.png",
+          "largeIconUri": "https://raw.githubusercontent.com/imduffy15/ha-alexa-energy-display/main/skill-package/assets/icon-512.png"
+        },
+        "en-CA": {
+          "name": "Energy Display Voice",
+          "summary": "Ask Alexa about your Home Assistant solar, grid and battery.",
+          "description": "Exposes your Home Assistant energy data as read-only Alexa devices (Solar, Grid, Battery, Home Energy) so you can ask for values and use them in routines. Requires the Alexa Energy Display integration.",
+          "examplePhrases": [
+            "Alexa, what's the battery level?",
+            "Alexa, what is the solar power?",
+            "Alexa, discover devices"
+          ],
+          "keywords": [
+            "home assistant",
+            "energy",
+            "solar",
+            "battery"
+          ],
+          "smallIconUri": "https://raw.githubusercontent.com/imduffy15/ha-alexa-energy-display/main/skill-package/assets/icon-108.png",
+          "largeIconUri": "https://raw.githubusercontent.com/imduffy15/ha-alexa-energy-display/main/skill-package/assets/icon-512.png"
+        },
+        "en-IN": {
+          "name": "Energy Display Voice",
+          "summary": "Ask Alexa about your Home Assistant solar, grid and battery.",
+          "description": "Exposes your Home Assistant energy data as read-only Alexa devices (Solar, Grid, Battery, Home Energy) so you can ask for values and use them in routines. Requires the Alexa Energy Display integration.",
+          "examplePhrases": [
+            "Alexa, what's the battery level?",
+            "Alexa, what is the solar power?",
+            "Alexa, discover devices"
+          ],
+          "keywords": [
+            "home assistant",
+            "energy",
+            "solar",
+            "battery"
+          ],
+          "smallIconUri": "https://raw.githubusercontent.com/imduffy15/ha-alexa-energy-display/main/skill-package/assets/icon-108.png",
+          "largeIconUri": "https://raw.githubusercontent.com/imduffy15/ha-alexa-energy-display/main/skill-package/assets/icon-512.png"
+        }
+      },
+      "isAvailableWorldwide": true,
+      "category": "SMART_HOME",
+      "distributionCountries": [],
+      "testingInstructions": "Private skill for one Home Assistant installation."
+    },
+    "privacyAndCompliance": {
+      "allowsPurchases": false,
+      "usesPersonalInfo": false,
+      "isChildDirected": false,
+      "isExportCompliant": true,
+      "containsAds": false,
+      "locales": {
+        "en-US": {},
+        "en-GB": {},
+        "en-AU": {},
+        "en-CA": {},
+        "en-IN": {}
+      }
+    },
+    "apis": {
+      "smartHome": {
+        "protocolVersion": "3",
+        "endpoint": {
+          "uri": "arn:aws:lambda:REGION:ACCOUNT:function:energy-display-smart-home"
+        }
+      }
+    },
+    "permissions": [
+      {
+        "name": "alexa::async_event:write"
+      }
+    ]
+  }
+}

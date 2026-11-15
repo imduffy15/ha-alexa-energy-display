@@ -89,6 +89,7 @@ class EnergyDisplayCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._last_push_monotonic = 0.0
         self._push_lock = asyncio.Lock()
         self.built_monotonic = 0.0
+        self.metrics: dict[str, float] = {}
 
     @property
     def widget_enabled(self) -> bool:
@@ -113,8 +114,12 @@ class EnergyDisplayCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """Collect tiles from the Energy dashboard and the chosen entities."""
         options = self.config_entry.options
         tiles: list[dict[str, Any]] = []
+        metrics: dict[str, float] = {}
         if options.get(CONF_USE_ENERGY, True):
-            tiles.extend(await async_energy_tiles(self.hass, await async_get_energy_sources(self.hass)))
+            tiles.extend(
+                await async_energy_tiles(self.hass, await async_get_energy_sources(self.hass), metrics)
+            )
+        self.metrics = metrics
         custom = entity_tiles(self.hass, options.get(CONF_ENTITIES, []))
         tiles = custom + tiles if options.get(CONF_ENTITIES_FIRST, False) else tiles + custom
         self.built_monotonic = time.monotonic()

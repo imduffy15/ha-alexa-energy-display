@@ -1,14 +1,23 @@
 {
   "domain": "alexa_energy_display",
   "name": "Alexa Energy Display",
-  "after_dependencies": ["cloud", "energy", "recorder"],
-  "codeowners": ["@imduffy15"],
+  "after_dependencies": [
+    "cloud",
+    "energy",
+    "recorder"
+  ],
+  "codeowners": [
+    "@imduffy15"
+  ],
   "config_flow": true,
-  "dependencies": ["http", "webhook"],
+  "dependencies": [
+    "http",
+    "webhook"
+  ],
   "documentation": "https://github.com/imduffy15/ha-alexa-energy-display",
   "integration_type": "service",
   "iot_class": "cloud_push",
   "issue_tracker": "https://github.com/imduffy15/ha-alexa-energy-display/issues",
   "requirements": [],
-  "version": "0.1.0"
+  "version": "0.2.0"
 }

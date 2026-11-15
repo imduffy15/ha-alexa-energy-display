@@ -241,8 +241,15 @@ async def async_energy_today(hass: HomeAssistant, statistic_ids: Iterable[str]) 
 # ----------------------------------------------------------------------------- build
 
 
-async def async_energy_tiles(hass: HomeAssistant, src: EnergySources) -> list[dict[str, Any]]:
-    """Live power first, then today's totals."""
+async def async_energy_tiles(
+    hass: HomeAssistant, src: EnergySources, metrics: dict[str, float] | None = None
+) -> list[dict[str, Any]]:
+    """Live power first, then today's totals.
+
+    When `metrics` is given it is filled with the raw numbers behind the tiles
+    (kW, kWh, %), for the Alexa smart home endpoints.
+    """
+    metrics = metrics if metrics is not None else {}
     live: list[dict[str, Any]] = []
     today: list[dict[str, Any]] = []
 
@@ -253,6 +260,15 @@ async def async_energy_tiles(hass: HomeAssistant, src: EnergySources) -> list[di
     home_kw = read_power_kw(hass, src.home_power)
     if home_kw is None and grid_kw is not None:
         home_kw = grid_kw + (solar_kw or 0.0) + (battery_kw or 0.0)
+    for key, value in (
+        ("solar_power_kw", None if solar_kw is None else max(solar_kw, 0.0)),
+        ("grid_power_kw", grid_kw),
+        ("battery_power_kw", battery_kw),
+        ("battery_soc", soc),
+        ("home_power_kw", None if home_kw is None else max(home_kw, 0.0)),
+    ):
+        if value is not None:
+            metrics[key] = value
 
     if solar_kw is not None:
         live.append(tile("solar_now", "Solar", *format_power(max(solar_kw, 0.0)), COLORS["solar"], "now"))
@@ -296,6 +312,17 @@ async def async_energy_tiles(hass: HomeAssistant, src: EnergySources) -> list[di
             + (batt_out or 0.0)
             - (batt_in or 0.0)
         )
+
+    for key, value in (
+        ("solar_today_kwh", solar_kwh),
+        ("import_today_kwh", import_kwh),
+        ("export_today_kwh", export_kwh),
+        ("battery_in_today_kwh", batt_in),
+        ("battery_out_today_kwh", batt_out),
+        ("home_today_kwh", None if home_kwh is None else max(home_kwh, 0.0)),
+    ):
+        if value is not None:
+            metrics[key] = value
 
     if solar_kwh is not None:
         today.append(tile("solar_today", "Solar", *format_energy(solar_kwh), COLORS["solar"], "today"))

@@ -8,6 +8,44 @@ Install the Home Assistant integration first
 ([INSTALL-HOME-ASSISTANT.md](INSTALL-HOME-ASSISTANT.md)). You need its webhook URL in
 step 3.
 
+## Automatic setup (recommended)
+
+`tools/setup_skill.py` does steps 1–5 below with the
+[ASK CLI](https://developer.amazon.com/en-US/docs/alexa/smapi/quick-start-alexa-skills-kit-command-line-interface.html).
+No AWS account is needed. Install the Home Assistant integration first.
+
+```sh
+npm install -g ask-cli
+ask configure --no-browser          # sign in with the Amazon account your Echo uses; answer No to AWS
+git clone https://github.com/imduffy15/ha-alexa-energy-display && cd ha-alexa-energy-display
+export HA_URL=https://ha.example.com HA_TOKEN=<long-lived access token>
+python3 tools/setup_skill.py --locale en-GB --dashboard-url "$HA_URL/energy"
+```
+
+What it does, each step safe to repeat:
+
+1. Creates an Alexa-hosted (Python) skill, or updates the one you name with `--skill-id`.
+2. Reads the skill's messaging credentials and puts them, plus a "this skill only"
+   restriction, into the Home Assistant integration. It creates the entry if there is
+   none, then reads the webhook URL back.
+3. Imports `skill-package/` (manifest, interaction model with your `--invocation`,
+   widget), keeping the hosted Lambda endpoint.
+4. Pushes `lambda/` and a generated `config.json` to the hosted repository and waits for
+   the deployment.
+5. Enables the skill for testing on your account.
+6. Waits for the model build, simulates "open energy display", and checks that the
+   response has live tiles and that Home Assistant paired.
+
+Useful options: `--invocation "home energy"`, `--locale en-US` (repeatable; English
+(Ireland) devices use `en-GB`), `--region us-east-1`, `--webhook-url <url>` (skip Home
+Assistant), `--ha-title "Ballyer Energy"` (which entry to update), `--profile`. It prints
+the link for the last manual step, installing the widget on a device ([step 6](#6-put-the-widget-on-the-echo)).
+
+Amazon's API returns 502/504 errors now and then. The script retries them, and
+rerunning it after a failure is safe.
+
+## Manual setup
+
 ## 1. Create the skill
 
 1. Open the [Alexa developer console](https://developer.amazon.com/alexa/console/ask).

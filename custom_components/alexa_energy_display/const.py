@@ -17,6 +17,12 @@ CONF_ENTITIES_FIRST: Final = "entities_first"
 CONF_DASHBOARD_URL: Final = "dashboard_url"
 CONF_UPDATE_INTERVAL: Final = "update_interval"
 CONF_SKILL_ID: Final = "skill_id"
+CONF_VOICE_PREFIX: Final = "voice_prefix"
+CONF_SH_CLIENT_ID: Final = "smart_home_client_id"
+CONF_SH_CLIENT_SECRET: Final = "smart_home_client_secret"
+
+SMART_HOME_PATH: Final = "/api/alexa_energy_display/smart_home"
+DATA_SMART_HOME: Final = "alexa_energy_display_smart_home"
 
 DEFAULT_TITLE: Final = "Energy"
 DEFAULT_UPDATE_INTERVAL: Final = 60
