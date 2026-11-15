@@ -1,0 +1,4 @@
+{
+  "webhook_url": "https://YOUR-HOME-ASSISTANT/api/webhook/PASTE-FROM-HOME-ASSISTANT",
+  "timeout_seconds": 6
+}

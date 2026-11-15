@@ -1,0 +1,16 @@
+{
+  "type": "APL",
+  "version": "2024.1",
+  "theme": "dark",
+  "background": "#0B1220",
+  "mainTemplate": {
+    "items": [
+      {
+        "type": "Frame",
+        "width": "100vw",
+        "height": "100vh",
+        "backgroundColor": "#0B1220"
+      }
+    ]
+  }
+}

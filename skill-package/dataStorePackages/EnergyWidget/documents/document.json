@@ -1,0 +1,218 @@
+{
+  "type": "APL",
+  "version": "2024.1",
+  "theme": "dark",
+  "background": "#0B1220",
+  "description": "Home Energy widget. Reads haEnergy/snapshot from the on-device data store (written by Home Assistant).",
+  "extensions": [
+    {
+      "name": "DataStore",
+      "uri": "alexaext:datastore:10"
+    }
+  ],
+  "settings": {
+    "DataStore": {
+      "dataBindings": [
+        {
+          "namespace": "haEnergy",
+          "key": "snapshot",
+          "dataBindingName": "ds"
+        }
+      ]
+    }
+  },
+  "mainTemplate": {
+    "parameters": [
+      "widgetData"
+    ],
+    "items": [
+      {
+        "type": "TouchWrapper",
+        "width": "100vw",
+        "height": "100vh",
+        "onPress": [
+          {
+            "type": "SendEvent",
+            "arguments": [
+              "open"
+            ],
+            "flags": {
+              "interactionMode": "STANDARD"
+            }
+          }
+        ],
+        "item": {
+          "type": "Frame",
+          "width": "100%",
+          "height": "100%",
+          "backgroundColor": "#0B1220",
+          "item": {
+            "type": "Container",
+            "width": "100%",
+            "height": "100%",
+            "padding": "3vw",
+            "items": [
+              {
+                "type": "Container",
+                "direction": "row",
+                "justifyContent": "spaceBetween",
+                "alignItems": "center",
+                "width": "100%",
+                "height": "14vh",
+                "paddingLeft": "1.5vw",
+                "paddingRight": "1.5vw",
+                "items": [
+                  {
+                    "type": "Text",
+                    "text": "${ds.title || 'Energy'}",
+                    "color": "#FFFFFF",
+                    "fontSize": "7vw",
+                    "fontWeight": "bold",
+                    "maxLines": 1,
+                    "shrink": 1
+                  },
+                  {
+                    "type": "Text",
+                    "when": "${ds != null}",
+                    "text": "${ds.updated}",
+                    "color": "#7F8EA6",
+                    "fontSize": "5vw",
+                    "maxLines": 1
+                  }
+                ]
+              },
+              {
+                "type": "Container",
+                "when": "${ds != null && ds.status == 'ok'}",
+                "width": "100%",
+                "height": "80vh",
+                "direction": "row",
+                "wrap": "wrap",
+                "data": "${ds.widget}",
+                "item": {
+                  "type": "Container",
+                  "width": "50%",
+                  "height": "50%",
+                  "padding": "1.5vw",
+                  "bind": [
+                    {
+                      "name": "tile",
+                      "value": "${data}"
+                    }
+                  ],
+                  "items": [
+                    {
+                      "type": "Frame",
+                      "width": "100%",
+                      "height": "100%",
+                      "backgroundColor": "#141D2E",
+                      "borderRadius": "4vw",
+                      "item": {
+                        "type": "Container",
+                        "width": "100%",
+                        "height": "100%",
+                        "direction": "row",
+                        "items": [
+                          {
+                            "type": "Container",
+                            "width": "100%",
+                            "height": "100%",
+                            "shrink": 1,
+                            "paddingLeft": "4vw",
+                            "paddingRight": "3vw",
+                            "justifyContent": "center",
+                            "items": [
+                              {
+                                "type": "Text",
+                                "text": "${tile.label}",
+                                "color": "#A9B7CC",
+                                "fontSize": "6vw",
+                                "maxLines": 1
+                              },
+                              {
+                                "type": "Container",
+                                "direction": "row",
+                                "alignItems": "baseline",
+                                "items": [
+                                  {
+                                    "type": "Text",
+                                    "text": "${tile.value}",
+                                    "color": "${tile.color}",
+                                    "fontSize": "11vw",
+                                    "fontWeight": "bold",
+                                    "maxLines": 1
+                                  },
+                                  {
+                                    "type": "Text",
+                                    "text": "${tile.unit}",
+                                    "color": "#DDE5F0",
+                                    "fontSize": "5.5vw",
+                                    "paddingLeft": "1vh",
+                                    "maxLines": 1
+                                  }
+                                ]
+                              },
+                              {
+                                "type": "Text",
+                                "when": "${tile.percent == null && tile.sub}",
+                                "text": "${tile.sub}",
+                                "color": "#7F8EA6",
+                                "fontSize": "4.5vw",
+                                "maxLines": 1
+                              },
+                              {
+                                "type": "Container",
+                                "when": "${tile.percent != null}",
+                                "width": "100%",
+                                "paddingTop": "1.5vw",
+                                "items": [
+                                  {
+                                    "type": "Frame",
+                                    "width": "100%",
+                                    "height": "2vw",
+                                    "backgroundColor": "#24304A",
+                                    "borderRadius": "1vh",
+                                    "item": {
+                                      "type": "Frame",
+                                      "width": "${tile.percent}%",
+                                      "height": "100%",
+                                      "backgroundColor": "${tile.color}",
+                                      "borderRadius": "1vh"
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "Container",
+                "when": "${ds == null || ds.status != 'ok'}",
+                "width": "100%",
+                "height": "80vh",
+                "justifyContent": "center",
+                "alignItems": "center",
+                "padding": "4vw",
+                "items": [
+                  {
+                    "type": "Text",
+                    "text": "${ds == null ? widgetData.hint : 'No energy data yet.'}",
+                    "color": "#A9B7CC",
+                    "fontSize": "6vw",
+                    "textAlign": "center",
+                    "width": "100%"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    ]
+  }
+}

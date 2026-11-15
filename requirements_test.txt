@@ -1,0 +1,2 @@
+pytest-homeassistant-custom-component==0.13.375
+ask-sdk-core>=1.19.0

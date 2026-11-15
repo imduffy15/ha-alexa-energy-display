@@ -1,0 +1,111 @@
+{
+  "packageVersion": "1.0",
+  "packageType": "APL_PACKAGE",
+  "publishingInformation": {
+    "schemaVersion": "1.0",
+    "locales": {
+      "en-US": [
+        {
+          "targetViewport": "WIDGET_M",
+          "metadata": {
+            "name": "Home Energy",
+            "description": "Live solar, grid, battery and home energy from your Home Assistant.",
+            "keywords": [
+              "energy",
+              "solar",
+              "home assistant"
+            ],
+            "iconUri": "https://raw.githubusercontent.com/imduffy15/ha-alexa-energy-display/main/skill-package/assets/widget-icon-450.png",
+            "previews": [
+              "https://raw.githubusercontent.com/imduffy15/ha-alexa-energy-display/main/skill-package/assets/widget-preview-328x552.png"
+            ]
+          }
+        }
+      ],
+      "en-GB": [
+        {
+          "targetViewport": "WIDGET_M",
+          "metadata": {
+            "name": "Home Energy",
+            "description": "Live solar, grid, battery and home energy from your Home Assistant.",
+            "keywords": [
+              "energy",
+              "solar",
+              "home assistant"
+            ],
+            "iconUri": "https://raw.githubusercontent.com/imduffy15/ha-alexa-energy-display/main/skill-package/assets/widget-icon-450.png",
+            "previews": [
+              "https://raw.githubusercontent.com/imduffy15/ha-alexa-energy-display/main/skill-package/assets/widget-preview-328x552.png"
+            ]
+          }
+        }
+      ],
+      "en-AU": [
+        {
+          "targetViewport": "WIDGET_M",
+          "metadata": {
+            "name": "Home Energy",
+            "description": "Live solar, grid, battery and home energy from your Home Assistant.",
+            "keywords": [
+              "energy",
+              "solar",
+              "home assistant"
+            ],
+            "iconUri": "https://raw.githubusercontent.com/imduffy15/ha-alexa-energy-display/main/skill-package/assets/widget-icon-450.png",
+            "previews": [
+              "https://raw.githubusercontent.com/imduffy15/ha-alexa-energy-display/main/skill-package/assets/widget-preview-328x552.png"
+            ]
+          }
+        }
+      ],
+      "en-CA": [
+        {
+          "targetViewport": "WIDGET_M",
+          "metadata": {
+            "name": "Home Energy",
+            "description": "Live solar, grid, battery and home energy from your Home Assistant.",
+            "keywords": [
+              "energy",
+              "solar",
+              "home assistant"
+            ],
+            "iconUri": "https://raw.githubusercontent.com/imduffy15/ha-alexa-energy-display/main/skill-package/assets/widget-icon-450.png",
+            "previews": [
+              "https://raw.githubusercontent.com/imduffy15/ha-alexa-energy-display/main/skill-package/assets/widget-preview-328x552.png"
+            ]
+          }
+        }
+      ],
+      "en-IN": [
+        {
+          "targetViewport": "WIDGET_M",
+          "metadata": {
+            "name": "Home Energy",
+            "description": "Live solar, grid, battery and home energy from your Home Assistant.",
+            "keywords": [
+              "energy",
+              "solar",
+              "home assistant"
+            ],
+            "iconUri": "https://raw.githubusercontent.com/imduffy15/ha-alexa-energy-display/main/skill-package/assets/widget-icon-450.png",
+            "previews": [
+              "https://raw.githubusercontent.com/imduffy15/ha-alexa-energy-display/main/skill-package/assets/widget-preview-328x552.png"
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "manifest": {
+    "id": "EnergyWidget",
+    "version": "1.0.0",
+    "presentationDefinitions": [
+      {
+        "url": "presentations/default.tpl"
+      }
+    ],
+    "appliesTo": "${viewport.mode == 'HUB'}",
+    "installStateChanges": "INFORM",
+    "updateStateChanges": "AUTOMATIC"
+  }
+}

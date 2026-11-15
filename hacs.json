@@ -1,0 +1,5 @@
+{
+  "name": "Alexa Energy Display",
+  "homeassistant": "2026.1.0",
+  "render_readme": true
+}

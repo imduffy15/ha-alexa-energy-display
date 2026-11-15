@@ -1,0 +1,8 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+node_modules/
+# Your webhook URL is a secret: keep it in the Alexa console, not in git.
+lambda/config.json
+.ask/

@@ -1,0 +1,53 @@
+{
+  "interactionModel": {
+    "languageModel": {
+      "invocationName": "energy display",
+      "intents": [
+        {
+          "name": "AMAZON.CancelIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.HelpIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.StopIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.NavigateHomeIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.FallbackIntent",
+          "samples": []
+        },
+        {
+          "name": "RefreshIntent",
+          "slots": [],
+          "samples": [
+            "refresh",
+            "update",
+            "reload",
+            "show my energy",
+            "show energy",
+            "show the energy display"
+          ]
+        },
+        {
+          "name": "OpenDashboardIntent",
+          "slots": [],
+          "samples": [
+            "open the dashboard",
+            "open dashboard",
+            "show the dashboard",
+            "show the full dashboard",
+            "open home assistant"
+          ]
+        }
+      ],
+      "types": []
+    }
+  }
+}

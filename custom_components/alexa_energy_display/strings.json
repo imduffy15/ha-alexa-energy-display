@@ -1,0 +1,75 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Alexa Energy Display",
+        "description": "Name the display. For the home screen widget, paste the skill's **Alexa Skill Messaging** client ID and secret from the Alexa developer console (Build → Tools → Permissions). Leave both empty to use only the full-screen view.",
+        "data": {
+          "title": "Title",
+          "client_id": "Skill messaging client ID",
+          "client_secret": "Skill messaging client secret"
+        }
+      },
+      "sources": {
+        "title": "Data sources",
+        "description": "Choose what to show. The Energy dashboard option reads live power and today's totals from Settings → Dashboards → Energy. Any other entities are added as tiles. The widget shows the first four tiles; the full-screen view shows up to twelve.",
+        "data": {
+          "use_energy_dashboard": "Use the Energy dashboard configuration",
+          "entities": "Extra entities",
+          "entities_first": "Show extra entities before energy tiles",
+          "dashboard_url": "Dashboard URL for \"open the dashboard\" (optional)",
+          "update_interval": "Update interval",
+          "skill_id": "Only accept this skill ID (optional)"
+        }
+      }
+    },
+    "error": {
+      "incomplete_credentials": "Enter both the client ID and the client secret, or neither.",
+      "invalid_auth": "Amazon rejected the client ID or secret.",
+      "cannot_connect": "Could not reach Login with Amazon.",
+      "no_sources": "Enable the Energy dashboard or choose at least one entity."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Alexa Energy Display",
+        "description": "Skill webhook URL (keep it private; put it in the skill's `lambda/config.json`):\n\n`{webhook_url}`",
+        "data": {
+          "title": "Title",
+          "client_id": "Skill messaging client ID",
+          "client_secret": "Skill messaging client secret",
+          "use_energy_dashboard": "Use the Energy dashboard configuration",
+          "entities": "Extra entities",
+          "entities_first": "Show extra entities before energy tiles",
+          "dashboard_url": "Dashboard URL for \"open the dashboard\" (optional)",
+          "update_interval": "Update interval",
+          "skill_id": "Only accept this skill ID (optional)",
+          "forget_accounts": "Forget paired Alexa accounts"
+        }
+      }
+    },
+    "error": {
+      "incomplete_credentials": "Enter both the client ID and the client secret, or neither.",
+      "invalid_auth": "Amazon rejected the client ID or secret.",
+      "cannot_connect": "Could not reach Login with Amazon.",
+      "no_sources": "Enable the Energy dashboard or choose at least one entity."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "widget_status": {
+        "name": "Widget status",
+        "state": {
+          "not_paired": "Not paired",
+          "paired": "Paired",
+          "pull_only": "Full-screen only",
+          "error": "Error"
+        }
+      }
+    },
+    "button": {
+      "push_now": {"name": "Push to widget now"}
+    }
+  }
+}
