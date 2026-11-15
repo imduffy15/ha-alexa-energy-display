@@ -11,7 +11,8 @@ flashing firmware, sideloading apps or keeping a browser open.
   (live power and today's kWh), and/or any other entities you pick (tariffs, EV charge,
   inverter mode, temperatures and so on).
 - **Voice on screenless Echos**: the same skill reads the numbers out.
-- **Voice and routines (optional second skill)**: Solar, Grid, Battery and Home Energy
+- **Voice questions**: "Alexa, ask energy display about the battery" (Alexa-hosted, built in).
+- **Smart home devices (optional second skill, your own AWS Lambda)**: Solar, Grid, Battery and Home Energy
   become read-only Alexa smart home devices, account-linked to Home Assistant, so you can
   ask "Alexa, what's the battery level?" and trigger routines on battery or grid changes.
   See [docs/INSTALL-VOICE.md](docs/INSTALL-VOICE.md).

@@ -1,4 +1,30 @@
-# Voice: the Energy Display Voice smart home skill
+# Voice
+
+There are two ways to ask Alexa about your energy.
+
+## 1. Ask the display skill (Alexa-hosted, nothing else to install)
+
+The display skill answers questions itself, on Amazon's hosting:
+
+- "Alexa, ask energy display about the battery" → "Battery is at 78 percent, discharging
+  270 watts. Battery in / out today is 9.35 in, 2.25 kilowatt hours."
+- "Alexa, ask energy display how's the solar / about the grid / about my usage / about today"
+- Extra entities by their name: "Alexa, ask energy display about the tariff"
+
+For shorter phrases, add an Alexa routine: *When you say* "how's the battery" → *Custom
+action* "ask energy display about the battery".
+
+## 2. Smart home devices (needs a Lambda in your own AWS account)
+
+The smart home skill below makes Solar, Grid, Battery and Home Energy real Alexa devices,
+so you can ask without the skill name and trigger routines on changes. Amazon only
+accepts a Lambda with an *Alexa Smart Home* trigger as a smart home endpoint. Alexa-hosted
+Lambdas live in Amazon's account, where no one can add that trigger: tried 2026-11-15,
+`update-skill-manifest` refused with *Please make sure that "Alexa Smart Home" is selected
+for the event source type*. So this part needs your own AWS account, the same way
+Home Assistant's own Alexa smart home setup (haaska) does.
+
+### The Energy Display Voice smart home skill
 
 The display skill shows tiles. This second, optional skill puts your energy data into
 Alexa's smart home as **read-only devices**, so you can ask without an invocation
